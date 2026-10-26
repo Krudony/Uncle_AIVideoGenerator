@@ -1,0 +1,17 @@
+<div class="mb-8 rounded-2xl border border-white/10 bg-zinc-950/90 p-3 shadow-2xl shadow-black/40 backdrop-blur-xl md:p-4">
+  <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <a href="/" class="group flex items-center gap-3 px-2 py-1 text-inherit no-underline">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-amber-300/25 bg-gradient-to-br from-amber-300/20 to-orange-500/5 text-xl shadow-inner shadow-amber-300/10">🎬</span>
+      <span class="min-w-0"><span class="block text-[10px] font-semibold uppercase tracking-[.24em] text-zinc-500">AI VIDEO WORKSPACE</span><span class="block truncate text-base font-bold tracking-tight text-white group-hover:text-amber-200">Uncle AI Video Generator</span></span>
+    </a>
+    <nav aria-label="เมนูหลัก" class="flex flex-wrap gap-1.5 rounded-xl border border-white/[.06] bg-black/50 p-1.5">
+      <a href="/" {% if request.path == '/' %}aria-current="page"{% endif %} class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium no-underline transition {% if request.path == '/' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-zinc-400 hover:bg-white/[.06] hover:text-white{% endif %}">Studio</a>
+      <a href="/ideas" {% if request.path == '/ideas' %}aria-current="page"{% endif %} class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium no-underline transition {% if request.path == '/ideas' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-zinc-400 hover:bg-white/[.06] hover:text-white{% endif %}">✦ คิดไอเดีย</a>
+      <a href="/episodes" {% if request.path == '/episodes' %}aria-current="page"{% endif %} class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium no-underline transition {% if request.path == '/episodes' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-zinc-400 hover:bg-white/[.06] hover:text-white{% endif %}">Episodes</a>
+      <a href="/videos" {% if request.path == '/videos' %}aria-current="page"{% endif %} class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium no-underline transition {% if request.path == '/videos' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-zinc-400 hover:bg-white/[.06] hover:text-white{% endif %}">▣ คลังวิดีโอ</a>
+      <a href="/sound" {% if request.path == '/sound' %}aria-current="page"{% endif %} class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium no-underline transition {% if request.path == '/sound' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-zinc-400 hover:bg-white/[.06] hover:text-white{% endif %}">♫ Sound</a>
+      <a href="/costs" {% if request.path == '/costs' %}aria-current="page"{% endif %} class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium no-underline transition {% if request.path == '/costs' %}bg-white/10 text-white ring-1 ring-white/10{% else %}text-zinc-400 hover:bg-white/[.06] hover:text-white{% endif %}">฿ ต้นทุนคลิป</a>
+    </nav>
+    <a href="/settings/api-keys" {% if request.path == '/settings/api-keys' %}aria-current="page"{% endif %} class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-amber-300/20 bg-amber-300/[.08] px-4 py-2.5 text-sm font-semibold text-amber-100 no-underline transition hover:border-amber-200/40 hover:bg-amber-300/[.14]">⚙ <span>API Keys</span><span class="text-amber-200/50">↗</span></a>
+  </div>
+</div>

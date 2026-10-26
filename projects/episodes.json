@@ -1,0 +1,662 @@
+[
+  {
+    "slug": "ep01",
+    "person": "Nikola Tesla",
+    "title": "The Engineer Who Helped Electrify the World",
+    "years": "1856–1943",
+    "fact_check": "Tesla advanced polyphase alternating-current systems and induction motors; he did not invent electricity.",
+    "engineering_focus": "AC motors, rotating magnetic fields, power distribution",
+    "intro": "Nikola Tesla (1856–1943). Tesla advanced polyphase alternating-current systems and induction motors; he did not invent electricity.",
+    "scenes": [
+      {
+        "id": 1,
+        "title": "A world before the grid",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, 1880s city street at dusk, gas lamps glowing, workshop windows illuminated by early electric lamps. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Before reliable electrical grids, cities struggled to bring power safely and efficiently to homes and factories.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 2,
+        "title": "A curious young engineer",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Young Nikola Tesla studying electrical machinery at a drafting table in late nineteenth-century Europe. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Nikola Tesla was fascinated by electricity and the possibility of motors without troublesome commutators.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 3,
+        "title": "The problem with power",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Historical power station with thick copper conductors, engineers studying losses across a growing city. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Early power networks faced difficult choices about voltage, distance, and the cost of copper wiring.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 4,
+        "title": "A rotating idea",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Close-up of a precise educational demonstration of a rotating magnetic field around a stationary stator. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Tesla developed polyphase systems that could produce a rotating magnetic field using alternating currents.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 5,
+        "title": "Induction motor",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Cutaway animation of an early induction motor: stator field rotating, rotor following without brushes. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "That rotating field makes an induction motor work, turning electrical energy into mechanical motion.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 6,
+        "title": "Patent era",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, 1880s American engineering office, inventor drafting electrical diagrams, ink and brass instruments. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "In the late eighteen eighties, Tesla patented important parts of his alternating-current motor system.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 7,
+        "title": "The current debate",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Contrasting nineteenth-century DC and AC electrical equipment in an exhibition hall, no confrontation. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "AC and DC technologies competed, with engineering, economics, and business all shaping the outcome.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 8,
+        "title": "Westinghouse partnership",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Industrial factory floor with engineers testing alternating-current equipment in the 1890s. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "George Westinghouse licensed Tesla's patents, helping bring polyphase power systems toward commercial use.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 9,
+        "title": "Power on display",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, 1893 Chicago fair at night lit by electric lights, panoramic tracking shot. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "The Chicago World's Fair of eighteen ninety-three became a famous showcase for electric illumination.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 10,
+        "title": "Niagara ambition",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Historical Niagara Falls hydroelectric generating hall with massive turbines and alternators. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Large hydroelectric projects at Niagara Falls helped demonstrate the potential of alternating-current generation and transmission.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 11,
+        "title": "Engineering legacy",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Modern electric motor on a workbench with an accurate exploded view of rotor and stator. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Today, induction motors drive pumps, machines, conveyors, and countless other industrial systems.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 12,
+        "title": "A connected world",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Nighttime modern city skyline powered by an electrical grid, gentle pullback. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Tesla did not invent electricity, but his engineering contributions helped shape the electrical world we know.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      }
+    ],
+    "sources": []
+  },
+  {
+    "slug": "ep02",
+    "person": "James Watt",
+    "title": "The Steam Engine That Transformed Industry",
+    "years": "1736–1819",
+    "fact_check": "Watt improved existing steam engines, especially by developing the separate condenser; he did not invent the steam engine.",
+    "engineering_focus": "steam efficiency, separate condenser, industrial power",
+    "intro": "James Watt (1736–1819). Watt improved existing steam engines, especially by developing the separate condenser; he did not invent the steam engine.",
+    "scenes": [
+      {
+        "id": 1,
+        "title": "Steam before Watt",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Eighteenth-century mine with an early atmospheric pumping engine operating. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "In the eighteenth century, mines needed powerful pumps to keep underground workings free from water.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 2,
+        "title": "A young instrument maker",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, James Watt repairing scientific instruments in a Glasgow workshop. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "James Watt began as an instrument maker, with a talent for noticing where machines wasted energy.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 3,
+        "title": "A wasteful cycle",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Educational cutaway of a Newcomen-style cylinder repeatedly heated and cooled. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Existing steam engines cooled their working cylinders during every cycle, wasting precious heat.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 4,
+        "title": "A sudden insight",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Watt sketching a separate steam condenser in a quiet eighteenth-century study. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Watt realized steam could be condensed in a separate chamber while the cylinder stayed hot.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 5,
+        "title": "Separate condenser",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Clear cutaway animation of steam flowing from a hot cylinder to a separate cool condenser. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "This separate condenser dramatically reduced one major source of heat loss in steam engines.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 6,
+        "title": "Building the prototype",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Eighteenth-century workshop artisans machining brass and iron components. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Turning that idea into a reliable machine required years of careful manufacturing and development.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 7,
+        "title": "Industrial partnership",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Watt and business associates discussing drawings at Soho Manufactory, historical reenactment. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Working with Matthew Boulton, Watt helped bring improved steam engines to industrial customers.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 8,
+        "title": "Rotary motion",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Close-up of steam engine linkage converting reciprocating to rotary motion. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Later developments allowed engines to deliver rotary motion, useful for powering factory machinery.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 9,
+        "title": "Factory power",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Early textile factory with line shafts driven by a steam engine. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Factories could increasingly rely on mechanical power rather than only water wheels and animals.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 10,
+        "title": "Horsepower",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Period engineer measuring engine output with diagrams and a mechanical dynamometer. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Watt also popularized horsepower as a practical way to describe the work engines could do.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 11,
+        "title": "The efficiency gain",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Split-screen engineering visualization comparing thermal losses, with no fabricated numerical claims. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "His engines did not create steam power from nothing; they made existing technology more efficient.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 12,
+        "title": "Legacy",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Slow dolly across preserved beam engine in a museum. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "The name watt now measures power, a reminder of engineering's role in the industrial revolution.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      }
+    ],
+    "sources": []
+  },
+  {
+    "slug": "ep03",
+    "person": "Michael Faraday",
+    "title": "From Bookbinder to Electromagnetic Pioneer",
+    "years": "1791–1867",
+    "fact_check": "Faraday discovered electromagnetic induction in 1831 and demonstrated electromagnetic rotation in 1821.",
+    "engineering_focus": "electromagnetic induction, motors, generators",
+    "intro": "Michael Faraday (1791–1867). Faraday discovered electromagnetic induction in 1831 and demonstrated electromagnetic rotation in 1821.",
+    "scenes": [
+      {
+        "id": 1,
+        "title": "The bookbinder",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Young Faraday binding books in early nineteenth-century London. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Michael Faraday began his working life binding books, not studying at an elite university.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 2,
+        "title": "Learning from pages",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Close-up of scientific books and handwritten experiment notes. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "He read the scientific volumes that passed through the shop and taught himself relentlessly.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 3,
+        "title": "A lecture changes everything",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Humphry Davy delivering a chemistry lecture at the Royal Institution. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "After attending Humphry Davy's lectures, Faraday found an opportunity at the Royal Institution.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 4,
+        "title": "Laboratory assistant",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Faraday preparing coils and instruments in a nineteenth-century laboratory. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "In the laboratory, careful experiments became his greatest tool for understanding electricity and magnetism.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 5,
+        "title": "A wire begins to move",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Historical recreation of 1821 electromagnetic rotation apparatus with suspended wire and magnet. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "In eighteen twenty-one, he demonstrated electromagnetic rotation, an early principle behind electric motors.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 6,
+        "title": "Invisible forces",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Educational field-line visualization around a bar magnet and coil. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Faraday imagined magnetic effects as patterns of force extending through the space around magnets.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 7,
+        "title": "A key experiment",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, 1831 induction experiment with two coils wound around an iron ring. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "In eighteen thirty-one, his experiments revealed how changing magnetism could produce an electric current.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 8,
+        "title": "A changing field",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Accurate diagrammatic animation showing changing magnetic flux inducing a current. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "This is electromagnetic induction: a changing magnetic field can generate an electric voltage.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 9,
+        "title": "Generator principle",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Simple hand-cranked generator cutaway with coil and magnetic field. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "That principle became fundamental to electrical generators, transformers, and much of modern power engineering.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 10,
+        "title": "Public demonstrations",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Faraday giving an accessible science demonstration to a Victorian audience. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Faraday shared science with public audiences and valued clear demonstrations over grand claims.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 11,
+        "title": "Modern motors",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Contemporary electric motor in a robotics laboratory. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Electric motors in today's robots still depend on the interaction of currents and magnetic fields.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 12,
+        "title": "Legacy in motion",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Electric train departing a station, camera tracks smoothly. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "His discoveries helped connect simple laboratory experiments to the electrical technologies surrounding us.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      }
+    ],
+    "sources": []
+  },
+  {
+    "slug": "ep04",
+    "person": "Thomas Edison",
+    "title": "The Inventor Who Built a Research Factory",
+    "years": "1847–1931",
+    "fact_check": "Edison and his teams improved commercially practical incandescent lighting and developed integrated electric lighting systems; he was not the first to invent a light bulb.",
+    "engineering_focus": "research teams, practical lighting, industrial innovation",
+    "intro": "Thomas Edison (1847–1931). Edison and his teams improved commercially practical incandescent lighting and developed integrated electric lighting systems; he was not the first to invent a light bulb.",
+    "scenes": [
+      {
+        "id": 1,
+        "title": "An era of experimentation",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Late nineteenth-century laboratory with glass bulbs and hand tools. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Thomas Edison is often remembered for the light bulb, but the real story is bigger.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 2,
+        "title": "The young inventor",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Young Edison experimenting with telegraph components at a desk. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "As a young inventor, Edison gained experience with telegraphy and practical electrical problems.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 3,
+        "title": "Menlo Park",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Exterior of the Menlo Park research laboratory in the 1870s. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "At Menlo Park, he created an organized laboratory where experiments could be repeated and improved.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 4,
+        "title": "Teamwork",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Diverse workshop team of historical technicians testing materials and apparatus. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Edison's inventions depended on teams of skilled assistants, machinists, and researchers working together.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 5,
+        "title": "Testing filaments",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Close-up of a technician measuring an early incandescent lamp filament. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "They tested many materials to develop incandescent lamps that could work reliably in practice.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 6,
+        "title": "Beyond the bulb",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Detailed educational view of a complete electrical lighting system: generators, wiring, switches, lamps. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "A useful lighting system needed generators, cables, switches, meters, and distribution, not just bulbs.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 7,
+        "title": "First demonstrations",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Visitors seeing practical incandescent lighting in a nineteenth-century demonstration room. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Public demonstrations helped convince people that electric lighting could become an everyday service.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 8,
+        "title": "Power distribution",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, 1880s urban electric distribution station with generators. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Early power stations showed how invention had to become infrastructure before it could change cities.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 9,
+        "title": "The phonograph",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Period cylinder phonograph turning as an operator listens. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Edison also developed the phonograph, an extraordinary early technology for recording and reproducing sound.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 10,
+        "title": "Industrial R and D",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Historical research workshop with careful notebooks and repeated experiments. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "His career shows the value of prototyping, testing, documentation, and organized research.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 11,
+        "title": "Modern innovation lab",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Contemporary product-development laboratory with prototype boards. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Modern engineering laboratories continue to combine specialized teams with iterative experimentation.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 12,
+        "title": "Legacy and nuance",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Museum display of early electric lamps and engineering notebooks. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Edison did not invent the first light bulb; he helped make electric lighting commercially practical.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      }
+    ],
+    "sources": []
+  },
+  {
+    "slug": "ep05",
+    "person": "Leonardo da Vinci",
+    "title": "The Renaissance Mind Who Drew Machines",
+    "years": "1452–1519",
+    "fact_check": "Leonardo drew ingenious mechanisms and studied anatomy, fluids, and flight; many proposed devices were not built or tested in his lifetime.",
+    "engineering_focus": "mechanical sketches, gears, flight studies, Renaissance engineering",
+    "intro": "Leonardo da Vinci (1452–1519). Leonardo drew ingenious mechanisms and studied anatomy, fluids, and flight; many proposed devices were not built or tested in his lifetime.",
+    "scenes": [
+      {
+        "id": 1,
+        "title": "Renaissance Florence",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Aerial cinematic view of fifteenth-century Florence rooftops. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Centuries before modern engineering software, Leonardo da Vinci studied the mechanics of the world.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 2,
+        "title": "An apprentice observes",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Young Leonardo drawing tools and mechanical parts in an Italian workshop. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "As an apprentice in Renaissance Italy, he learned to observe, draw, and construct.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 3,
+        "title": "The notebook",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Close-up of Renaissance notebook pages covered with mirror-written sketches. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "His notebooks mixed questions, sketches, and ideas about machines, nature, and human anatomy.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 4,
+        "title": "Gears and motion",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Faithful reconstruction of interlocking wooden gears based on Renaissance mechanical principles. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "He investigated gears, bearings, friction, and the transmission of motion between components.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 5,
+        "title": "Lifting machines",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Renaissance workshop with hand-operated hoists and pulleys. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Lifting devices and cranes fascinated him because they could multiply human effort.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 6,
+        "title": "Studying water",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Leonardo observing river eddies and sketching fluid motion. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Leonardo also watched water move, drawing currents, turbulence, and flowing patterns.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 7,
+        "title": "Dreams of flight",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Close-up of an ornithopter concept drawing with wooden ribs and fabric. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "He imagined flying machines inspired by birds, long before powered flight became practical.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 8,
+        "title": "Engineering limitations",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Careful static museum-style reconstruction of an untested flying machine, no claim of flight. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Most of these flight concepts were not built or successfully flown in his lifetime.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 9,
+        "title": "Anatomy and observation",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Leonardo studying anatomical drawings and proportions in a candlelit studio. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "His anatomical studies reveal the same habit: observe carefully, then record structures precisely.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 10,
+        "title": "Bridges and structures",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Renaissance-style self-supporting bridge model assembled from wooden beams. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "He sketched bridges and mechanical systems, exploring how forces pass through structures.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 11,
+        "title": "Art meets science",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Montage of precision drawing instruments and anatomical and mechanical studies. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "Leonardo's work crossed boundaries between art, science, geometry, and engineering design.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      },
+      {
+        "id": 12,
+        "title": "Legacy of curiosity",
+        "duration": 8,
+        "prompt": "Cinematic historically informed educational documentary, Modern engineer reviewing a historical sketch beside a 3D CAD model. Era-accurate clothing, materials and architecture where applicable. Realistic physics and mechanically plausible components. 35mm lens, subtle film grain, detailed natural lighting, smooth deliberate camera movement, single continuous 8-second shot. No captions, no text, no logos, no watermarks, no spoken dialogue. Avoid anachronisms and fabricated historical documents.",
+        "narration": "His greatest legacy may be curiosity: ask how something works, then investigate it rigorously.",
+        "job_id": "",
+        "status": "not_started",
+        "file": ""
+      }
+    ],
+    "sources": []
+  }
+]
