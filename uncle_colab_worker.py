@@ -17,7 +17,7 @@ except ImportError:
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-q', 'requests'])
     import requests
 
-UNCLE_URL = (os.environ.get('UNCLE_URL') or input('Uncle public URL: ')).rstrip('/')
+UNCLE_URL = (os.environ.get('COLAB_RELAY_URL') or os.environ.get('UNCLE_URL') or input('Uncle public URL: ')).rstrip('/')
 TOKEN = os.environ.get('COLAB_WORKER_TOKEN') or getpass('COLAB_WORKER_TOKEN: ')
 H = {'X-Worker-Token': TOKEN}
 USE_MODEL = os.environ.get('INSTALL_MODEL', '0') == '1'

@@ -197,6 +197,15 @@ ffprobe -version
 [ดูรายละเอียดหลักสูตร AI Video Production Pipeline 101](https://uncle-engineer.com/course/ai-video-pipeline-101/)
 
 ## Colab
+### Public Colab relay (box cannot run cloudflared)
+
+Grok Bot box blocks outbound port 7844, so `trycloudflare` returns 530. Use Worker relay instead:
+
+- URL: `https://uncle-colab-relay.facebook-chatbot.workers.dev`
+- Set `COLAB_RELAY_URL` + `COLAB_WORKER_TOKEN` in `.env`
+- Colab worker: `COLAB_RELAY_URL=... COLAB_WORKER_TOKEN=... INSTALL_MODEL=0 python uncle_colab_worker.py`
+- Source: `colab_relay/worker.js`
+
 > **Video Generate** on this fork queues **Colab only** (`POST /api/generate` never calls OpenRouter `/videos`). Worker: `uncle_colab_worker.py` + `COLAB_WORKER_TOKEN`.
  (ฟรี) — สร้างวิดีโอโดยไม่ใช้ OpenRouter video
 

@@ -8,6 +8,37 @@ import requests
 from flask import Flask,render_template,request,jsonify,send_from_directory
 from dotenv import load_dotenv
 from colab_bridge import COLAB_MODEL, colab_model_item, is_colab_job, require_worker
+def relay_url():
+  return (os.environ.get('COLAB_RELAY_URL') or '').rstrip('/')
+def relay_token():
+  return (os.environ.get('COLAB_WORKER_TOKEN') or '').strip()
+def relay_headers():
+  return {'X-Worker-Token': relay_token(), 'Content-Type': 'application/json'}
+def relay_enqueue(job):
+  base=relay_url()
+  if not base or not relay_token(): return False, 'relay not configured'
+  try:
+   r=requests.post(f'{base}/api/colab/enqueue', headers=relay_headers(), json=job, timeout=30)
+   r.raise_for_status(); return True, r.json()
+  except Exception as e: return False, str(e)
+def relay_sync_job(job_id):
+  """Pull status/file from public relay into local outputs."""
+  base=relay_url();
+  if not base or not relay_token(): return None
+  try:
+   r=requests.get(f'{base}/api/colab/jobs', headers={'X-Worker-Token': relay_token()}, timeout=30)
+   r.raise_for_status(); jobs=r.json().get('data') or []
+   remote=next((x for x in jobs if x.get('job_id')==job_id), None)
+   if not remote: return None
+   if remote.get('status')=='done' and remote.get('file'):
+    dest=OUTPUT/f"{remote.get('slug','clip')}_scene{int(remote.get('scene_id') or 0):02d}.mp4"
+    if not dest.exists() or dest.stat().st_size<100:
+     d=requests.get(f'{base}/api/colab/download/{job_id}', headers={'X-Worker-Token': relay_token()}, timeout=180)
+     d.raise_for_status(); dest.write_bytes(d.content)
+    remote=dict(remote); remote['local_file']=dest.name
+   return remote
+  except Exception: return None
+
 load_dotenv()
 ROOT=Path(__file__).resolve().parent
 DATA=ROOT/'projects'/'episodes.json'; OUTPUT=ROOT/'outputs'; OUTPUT.mkdir(exist_ok=True)
@@ -367,8 +398,11 @@ def generate():
   result={'id':job_id,'status':'pending','generation_id':'','usage':{'cost':0}}
   scene.update(job_id=job_id,status='pending',file='',model=model,duration=duration,resolution=resolution,aspect_ratio=aspect,generated_at=created,generation_id='',usage_cost=0,prompt=scene.get('prompt',''))
   save(data)
-  jobs=load_video_jobs();jobs.insert(0,{'job_id':job_id,'slug':ep.get('slug',''),'episode_title':ep.get('title',''),'scene_id':int(obj['id']),'scene_title':scene.get('title',''),'model':model,'duration':duration,'resolution':resolution,'aspect_ratio':aspect,'status':'queued','file':'','generation_id':'','usage_cost':0,'created_at':created,'api_key_id':'colab','prompt':scene.get('prompt','')})
-  save_video_jobs(jobs);return jsonify(result)
+  job_row={'job_id':job_id,'slug':ep.get('slug',''),'episode_title':ep.get('title',''),'scene_id':int(obj['id']),'scene_title':scene.get('title',''),'model':model,'duration':duration,'resolution':resolution,'aspect_ratio':aspect,'status':'queued','file':'','generation_id':'','usage_cost':0,'created_at':created,'api_key_id':'colab','prompt':scene.get('prompt','')}
+  jobs=load_video_jobs();jobs.insert(0,job_row);save_video_jobs(jobs)
+  ok,rel=relay_enqueue({'job_id':job_id,'slug':ep.get('slug',''),'episode_title':ep.get('title',''),'scene_id':int(obj['id']),'scene_title':scene.get('title',''),'prompt':scene.get('prompt',''),'duration':duration,'resolution':resolution,'aspect_ratio':aspect})
+  result['relay']=ok; result['relay_detail']=rel if not ok else 'queued'
+  return jsonify(result)
  except Exception as e:return jsonify(error=str(e)),400
 @app.post('/api/check')
 def check():
@@ -377,6 +411,16 @@ def check():
   if not job:raise ValueError('No job yet')
   if '/' in job or '..' in job:raise ValueError('Invalid job ID')
   if is_colab_job(job):
+   remote=relay_sync_job(job)
+   jobs=load_video_jobs();record=next((x for x in jobs if x.get('job_id')==job),None)
+   if remote and record:
+    if remote.get('status')=='done' and remote.get('local_file'):
+     record['status']='done'; record['file']=remote['local_file']; record['error']=''
+     save_video_jobs(jobs)
+    elif remote.get('status') in ('running','failed','queued'):
+     record['status']=remote['status'];
+     if remote.get('error'): record['error']=remote['error']
+     save_video_jobs(jobs)
    jobs=load_video_jobs();record=next((x for x in jobs if x.get('job_id')==job),None)
    worker_status=(record or {}).get('status','queued')
    status_map={'queued':'pending','running':'processing','done':'completed','failed':'failed'}
