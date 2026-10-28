@@ -202,7 +202,7 @@ ffprobe -version
 2. รันแอป: `python app.py`
 3. เปิด tunnel ให้ Colab เรียกได้ เช่น `cloudflared tunnel --url http://localhost:5000`
 4. ใน Studio เลือกโมเดล **Google Colab (ฟรี · ต้องเปิด notebook)** แล้วกด Generate
-5. บน Colab: Runtime → T4 GPU · เปิดไฟล์ `colab/uncle_worker.py` (หรือ notebook) · ใส่ URL สาธารณะกับ token · รันลูป
+5. บน Colab: Runtime → T4 GPU · เปิดไฟล์ `uncle_colab_worker.py` · ใส่ URL สาธารณะกับ token · รันลูป
 6. Worker จะ claim job → สร้างคลิป → อัปโหลดกลับ · แล้วกด Check / Assemble ในแอป
 
 API worker (ต้องมี header `X-Worker-Token`):

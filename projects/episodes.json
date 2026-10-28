@@ -1,5 +1,108 @@
 [
   {
+    "slug": "dog-cat-chat",
+    "title": "หมา–แมวคุยกัน 1 นาที",
+    "person": "หมาและแมว",
+    "years": "",
+    "engineering_focus": "สนทนาตลกสั้น",
+    "fact_check": "นิยายการ์ตูน",
+    "intro": "คลิปทดลอง Colab ฟรี ประมาณ 1 นาที",
+    "brief": {
+      "language": "th",
+      "style": "cute cartoon"
+    },
+    "scenes": [
+      {
+        "id": 1,
+        "title": "หมาทักทาย",
+        "prompt": "Cute cartoon dog waving hello, talking to a cat, soft daylight living room, 8s",
+        "narration": "",
+        "status": "idle",
+        "file": "",
+        "job_id": "",
+        "model": "",
+        "duration": 8
+      },
+      {
+        "id": 2,
+        "title": "แมวตอบ",
+        "prompt": "Cute cartoon cat answering the dog, playful expression, same room continuity",
+        "narration": "",
+        "status": "idle",
+        "file": "",
+        "job_id": "",
+        "model": "",
+        "duration": 8
+      },
+      {
+        "id": 3,
+        "title": "คุยเรื่องกระดูก",
+        "prompt": "Dog talking about a bone excitedly, cat listening, warm indoor light",
+        "narration": "",
+        "status": "idle",
+        "file": "",
+        "job_id": "",
+        "model": "",
+        "duration": 8
+      },
+      {
+        "id": 4,
+        "title": "แมวพูดเรื่องปลา",
+        "prompt": "Cat talking about fish, dog nodding, gentle camera push-in",
+        "narration": "",
+        "status": "idle",
+        "file": "",
+        "job_id": "",
+        "model": "",
+        "duration": 8
+      },
+      {
+        "id": 5,
+        "title": "ทะเลาะนิดหน่อย",
+        "prompt": "Dog and cat mild playful argument, comic timing, no violence",
+        "narration": "",
+        "status": "idle",
+        "file": "",
+        "job_id": "",
+        "model": "",
+        "duration": 8
+      },
+      {
+        "id": 6,
+        "title": "คืนดี",
+        "prompt": "Dog and cat make peace, sitting side by side, soft smile",
+        "narration": "",
+        "status": "idle",
+        "file": "",
+        "job_id": "",
+        "model": "",
+        "duration": 8
+      },
+      {
+        "id": 7,
+        "title": "แผนเที่ยว",
+        "prompt": "Dog and cat planning a walk outside, window light, hopeful mood",
+        "narration": "",
+        "status": "idle",
+        "file": "",
+        "job_id": "",
+        "model": "",
+        "duration": 8
+      },
+      {
+        "id": 8,
+        "title": "ปิดท้าย",
+        "prompt": "Dog and cat wave goodbye to camera, cozy ending shot",
+        "narration": "",
+        "status": "idle",
+        "file": "",
+        "job_id": "",
+        "model": "",
+        "duration": 8
+      }
+    ]
+  },
+  {
     "slug": "ep01",
     "person": "Nikola Tesla",
     "title": "The Engineer Who Helped Electrify the World",
