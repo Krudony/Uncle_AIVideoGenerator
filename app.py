@@ -281,15 +281,9 @@ def delete_episode(slug):
  except Exception as e:return jsonify(error=str(e)),400
 @app.get('/api/models')
 def models():
+ # Studio video models = Colab only (no OpenRouter /videos/models)
  items=[colab_model_item()]
- err=''
- try:
-  result=api('GET','/videos/models');remote=result if isinstance(result,list) else result.get('data',result.get('models',[]))
-  if isinstance(remote,list):items.extend(remote)
- except Exception as e:
-  err=str(e)
- payload={'data':items,'default_model':selected_model('video_generation') or COLAB_MODEL}
- if err:payload['openrouter_error']=err
+ payload={'data':items,'default_model':COLAB_MODEL,'backend':'colab'}
  return jsonify(payload)
 @app.post('/api/scene')
 def edit_scene():
@@ -365,27 +359,15 @@ def generate():
   if scene['status'] in ('pending','processing'):raise ValueError('Scene already has an active job')
   duration=int(obj.get('duration',8));
   if duration<5 or duration>10:raise ValueError('Duration must be 5–10 seconds')
-  model=(obj.get('model') or '').strip() or COLAB_MODEL
-  # Default path: Colab queue (no OpenRouter video billing)
-  if model != COLAB_MODEL and os.environ.get('UNCLE_ALLOW_OPENROUTER_VIDEO','').strip() != '1':
-   model=COLAB_MODEL
+  # Video generate = Colab queue only (never calls OpenRouter /videos)
+  model=COLAB_MODEL
   aspect=obj.get('aspect_ratio','9:16');resolution=obj.get('resolution','720p')
   created=datetime.now(timezone.utc).isoformat()
-  if model==COLAB_MODEL:
-   job_id=f'colab-{uuid.uuid4().hex}'
-   result={'id':job_id,'status':'pending','generation_id':'','usage':{'cost':0}}
-   scene.update(job_id=job_id,status='pending',file='',model=model,duration=duration,resolution=resolution,aspect_ratio=aspect,generated_at=created,generation_id='',usage_cost=0,prompt=scene.get('prompt',''))
-   save(data)
-   jobs=load_video_jobs();jobs.insert(0,{'job_id':job_id,'slug':ep.get('slug',''),'episode_title':ep.get('title',''),'scene_id':int(obj['id']),'scene_title':scene.get('title',''),'model':model,'duration':duration,'resolution':resolution,'aspect_ratio':aspect,'status':'queued','file':'','generation_id':'','usage_cost':0,'created_at':created,'api_key_id':'colab','prompt':scene.get('prompt','')})
-   save_video_jobs(jobs);return jsonify(result)
-  body={'model':model,'prompt':scene['prompt'],'duration':duration,'aspect_ratio':aspect,'resolution':resolution,'generate_audio':False}
-  result=api('POST','/videos',json=body)
-  usage=result.get('usage') or {}
-  scene.update(job_id=result['id'],status=result.get('status','pending'),file='',model=model,duration=duration,generated_at=created,generation_id=result.get('generation_id',''),usage_cost=usage.get('cost') if isinstance(usage,dict) else None)
+  job_id=f'colab-{uuid.uuid4().hex}'
+  result={'id':job_id,'status':'pending','generation_id':'','usage':{'cost':0}}
+  scene.update(job_id=job_id,status='pending',file='',model=model,duration=duration,resolution=resolution,aspect_ratio=aspect,generated_at=created,generation_id='',usage_cost=0,prompt=scene.get('prompt',''))
   save(data)
-  config=key_config();key_id=config.get('active_id','')
-  if not key_id and os.environ.get('OPENROUTER_API_KEY','').strip():key_id='env'
-  jobs=load_video_jobs();jobs.insert(0,{'job_id':result['id'],'slug':ep.get('slug',''),'episode_title':ep.get('title',''),'scene_id':int(obj['id']),'scene_title':scene.get('title',''),'model':model,'duration':duration,'resolution':resolution,'aspect_ratio':aspect,'status':result.get('status','pending'),'file':'','generation_id':result.get('generation_id',''),'usage_cost':usage.get('cost') if isinstance(usage,dict) else None,'created_at':created,'api_key_id':key_id})
+  jobs=load_video_jobs();jobs.insert(0,{'job_id':job_id,'slug':ep.get('slug',''),'episode_title':ep.get('title',''),'scene_id':int(obj['id']),'scene_title':scene.get('title',''),'model':model,'duration':duration,'resolution':resolution,'aspect_ratio':aspect,'status':'queued','file':'','generation_id':'','usage_cost':0,'created_at':created,'api_key_id':'colab','prompt':scene.get('prompt','')})
   save_video_jobs(jobs);return jsonify(result)
  except Exception as e:return jsonify(error=str(e)),400
 @app.post('/api/check')

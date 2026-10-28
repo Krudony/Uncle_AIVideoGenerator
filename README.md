@@ -196,7 +196,9 @@ ffprobe -version
 
 [ดูรายละเอียดหลักสูตร AI Video Production Pipeline 101](https://uncle-engineer.com/course/ai-video-pipeline-101/)
 
-## Colab (ฟรี) — สร้างวิดีโอโดยไม่ใช้ OpenRouter video
+## Colab
+> **Video Generate** on this fork queues **Colab only** (`POST /api/generate` never calls OpenRouter `/videos`). Worker: `uncle_colab_worker.py` + `COLAB_WORKER_TOKEN`.
+ (ฟรี) — สร้างวิดีโอโดยไม่ใช้ OpenRouter video
 
 1. ใส่ใน `.env`: `COLAB_WORKER_TOKEN=รหัสลับของคุณ`
 2. รันแอป: `python app.py`
