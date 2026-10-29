@@ -196,30 +196,63 @@ ffprobe -version
 
 [ดูรายละเอียดหลักสูตร AI Video Production Pipeline 101](https://uncle-engineer.com/course/ai-video-pipeline-101/)
 
-## Colab
-### Public Colab relay (box cannot run cloudflared)
+## Colab — Z-Image Turbo, then MiniMax H3
 
-Grok Bot box blocks outbound port 7844, so `trycloudflare` returns 530. Use Worker relay instead:
+Video Generate queues a Colab job. `POST /api/generate` does not call OpenRouter `/videos`. The box cannot run cloudflared (outbound port 7844 returns 530), so the public relay is `https://uncle-colab-relay.facebook-chatbot.workers.dev`. `COLAB_RELAY_URL` is preferred over `UNCLE_URL`. Source: `colab_relay/worker.js`. Runbook: [DISPATCH_COLAB_PRO.md](DISPATCH_COLAB_PRO.md).
 
-- URL: `https://uncle-colab-relay.facebook-chatbot.workers.dev`
-- Set `COLAB_RELAY_URL` + `COLAB_WORKER_TOKEN` in `.env`
-- Colab worker: `COLAB_RELAY_URL=... COLAB_WORKER_TOKEN=... INSTALL_MODEL=0 python uncle_colab_worker.py`
-- Source: `colab_relay/worker.js`
+Real clips use one path:
 
-> **Video Generate** on this fork queues **Colab only** (`POST /api/generate` never calls OpenRouter `/videos`). Worker: `uncle_colab_worker.py` + `COLAB_WORKER_TOKEN`.
- (ฟรี) — สร้างวิดีโอโดยไม่ใช้ OpenRouter video
+1. Z-Image Turbo still from the scene prompt, same frame size as the video.
+2. MiniMax H3 `fl2va` image-to-video with that still as `first_frame`.
 
-1. ใส่ใน `.env`: `COLAB_WORKER_TOKEN=รหัสลับของคุณ`
-2. รันแอป: `python app.py`
-3. เปิด tunnel ให้ Colab เรียกได้ เช่น `cloudflared tunnel --url http://localhost:5000`
-4. ใน Studio เลือกโมเดล **Google Colab (ฟรี · ต้องเปิด notebook)** แล้วกด Generate
-5. บน Colab: Runtime → T4 GPU · เปิดไฟล์ `uncle_colab_worker.py` · ใส่ URL สาธารณะกับ token · รันลูป
-6. Worker จะ claim job → สร้างคลิป → อัปโหลดกลับ · แล้วกด Check / Assemble ในแอป
+Each scene is **768×768**, or **1344×768** when the job aspect is 16:9. The clip is **5 seconds at 24 fps**. H3 only accepts `17k+5` frame counts, so 120 frames is not legal and the worker submits **124 frames** (~5.17s), the length of the verified colab-zimage run. The studio duration field (often 8) is ignored. Concatenate finished scenes later. Do not render 15 second scenes.
 
-API worker (ต้องมี header `X-Worker-Token`):
+`damo-vilab` is not a backend. `INSTALL_MODEL` does not select a model. Wan Animate is not this queue. Smoke mp4s for bridge tests only: `BACKEND=ffmpeg`.
+
+ComfyUI must already be running on the Colab A100 at `http://127.0.0.1:8188` with the weights below. The worker does not download checkpoints and does not open a second Colab session. A flock on `COLAB_WORKER_LOCK` (default `/tmp/uncle_colab_worker.lock`) makes a second process on the same machine exit.
+
+Verified H3 weights (`Comfy-Org/MiniMax-H3`, revision `e5eb578a89295337b8ff433a035929ce0279e0b6`):
+
+- `models/diffusion_models/minimax_h3_fl2va_pruned_fp8_scaled.safetensors`
+- `models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`
+- `models/vae/minimax_h3_video_vae_fp16.safetensors`
+- `models/vae/minimax_h3_audio_vae_fp32.safetensors`
+
+Z-Image Turbo keyframes (`Comfy-Org/z_image_turbo`):
+
+- `models/diffusion_models/z_image_turbo_bf16.safetensors`
+- `models/text_encoders/qwen_3_4b.safetensors` (CLIP type `lumina2`)
+- `models/vae/ae.safetensors`
+
+H3 sampling matches the verified graph: 20 steps, `res_multistep`, `simple`, denoise 1, BasicGuider, no turbo LoRA, joint video and audio. Z-Image Turbo: 8 steps, cfg 1, AuraFlow shift 3, `res_multistep`, `simple`.
+
+The Drive folder `1qwFEx1OTbP3GyiqEvjaFp2Ym-3j4jjKY` was the intended cache and was empty on that run. Mount it only when the files are actually there. The worker never downloads weights.
+
+```python
+import os
+os.environ['COLAB_RELAY_URL'] = 'https://uncle-colab-relay.facebook-chatbot.workers.dev'
+os.environ['COLAB_WORKER_TOKEN'] = 'PASTE_FROM_ENV'
+os.environ['BACKEND'] = 'comfy'
+os.environ['COMFY_URL'] = 'http://127.0.0.1:8188'
+!python /content/Uncle_AIVideoGenerator/uncle_colab_worker.py
+```
+
+`KEYFRAME_IMAGE=/path/to/still.png` is an optional hook when the still was already rendered with Z-Image. H3 still runs as image-to-video and will not fall back to text-to-video.
+
+Checkpoint names can be overridden with `ZIMAGE_UNET`, `ZIMAGE_CLIP`, `ZIMAGE_VAE`, `H3_UNET`, `H3_CLIP`, `H3_VIDEO_VAE`, and `H3_AUDIO_VAE` only when that runtime already has a different file from the same Comfy-Org repos (for example the newer int8 H3 names). Do not point them at Wan or damo.
+
+Local check without a GPU:
+
+```sh
+python -m unittest tests.test_colab_worker -v
+python uncle_colab_worker.py --dry-run
+```
+
+`--dry-run` talks to an in-process Comfy HTTP mock, writes `dry_run_out.mp4`, and does not claim the relay.
+
+Worker API (header `X-Worker-Token`):
+
 - `POST /api/colab/next`
-- `POST /api/colab/result/<id>` (multipart `video`)
+- `POST /api/colab/result/<id>` multipart field `video`, form `status=done`, or `status=failed` with `error`
 - `GET /api/colab/jobs`
 - `POST /api/colab/requeue/<id>`
-
-Pilot แนะนำ: EP «หมา–แมวคุยกัน» ~8 scene × ~8 วินาที ≈ 1 นาที แล้ว Assemble
