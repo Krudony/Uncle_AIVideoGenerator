@@ -36,7 +36,7 @@ H3_FRAMES_8S = 192
 H3_FRAMES_5S = 124
 # Official Z-Image Turbo template latent. 768 and 768×1344 make EmptySD3 emit stacked panels.
 ZIMAGE_SIDE = 1024
-KEYFRAME_ATTEMPTS = 3
+KEYFRAME_ATTEMPTS = int(os.environ.get('KEYFRAME_ATTEMPTS', '10') or 10)
 TILE_CORR_MAX = 0.85
 SINGLE_FRAME_RULE = (
     'Full-bleed single cinematic frame filling the entire image. '
@@ -198,6 +198,16 @@ def vertical_tile_scores(image):
         'h3': _corr_shift(gray, width, height, max(1, height // 3)),
     }
 
+def salvage_keyframe(image, scores, width, height):
+    bands = 2 if max(scores, key=scores.get) == 'h2' else 3
+    crops = [
+        image.crop((0, index * image.height // bands,
+                    image.width, (index + 1) * image.height // bands))
+        for index in range(bands)
+    ]
+    image = min(crops, key=lambda crop: max(vertical_tile_scores(crop).values()))
+    return fit_cover_image(image, width, height)
+
 def tile_corr_max():
     raw = os.environ.get('KEYFRAME_TILE_CORR', '').strip()
     return float(raw) if raw else TILE_CORR_MAX
@@ -258,9 +268,12 @@ def seed_for(job_id):
 
 def keyframe_prompt(prompt):
     return (
-        SINGLE_FRAME_RULE
-        + ' One moment, one camera. No text, no captions. '
-        + prompt.strip()
+        'Photoreal cinematic still photo, continuous single shot, one camera angle, '
+        'full-bleed edge-to-edge scene. No text, no captions. '
+        + prompt
+        + ' STRICT: one unbroken frame only. Forbidden: comic, manga, panel, '
+        'triptych, collage, storyboard, grid, split-screen, stacked strips, '
+        'repeated bands, borders between frames.'
     )
 
 def motion_prompt(prompt, seconds=DEFAULT_SCENE_SECONDS):
@@ -533,8 +546,9 @@ def render_comfy(job, out_path, client, workdir):
         zw, zh = zimage_latent_size()
         fitted = None
         scores = None
+        best = None
         for attempt in range(KEYFRAME_ATTEMPTS):
-            attempt_seed = seed + attempt
+            attempt_seed = (seed + attempt * 1_000_003) % (2**31 - 1) or seed
             still = zimage_workflow(
                 keyframe_prompt(prompt), zw, zh, attempt_seed, f'uncle_zimage/{jid}_{attempt}',
             )
@@ -543,7 +557,12 @@ def render_comfy(job, out_path, client, workdir):
             raw_path = client.download(
                 pick_image(output_files(item)), workdir / f'{jid}_zimage_{attempt}.png',
             )
-            fitted, scores = _fitted_keyframe(_Image().open(raw_path), width, height)
+            with _Image().open(raw_path) as raw:
+                image = raw.copy()
+            fitted, scores = _fitted_keyframe(image, width, height)
+            max_score = max(scores.values())
+            if best is None or max_score < best[0]:
+                best = (max_score, image, attempt_seed, scores)
             if fitted is None:
                 print('keyframe tiled', scores, 'seed', attempt_seed)
                 continue
@@ -552,9 +571,9 @@ def render_comfy(job, out_path, client, workdir):
             break
         client.free()
         if fitted is None:
-            raise RuntimeError(
-                f'Keyframe still looks tiled after {KEYFRAME_ATTEMPTS} seeds: {scores}'
-            )
+            _, image, seed, scores = best
+            fitted = salvage_keyframe(image, scores, width, height)
+            print('keyframe salvage', scores, 'seed', seed, 'size', fitted.size)
     key_path = workdir / f'{jid}_key.png'
     fitted.save(key_path, format='PNG')
     if fitted.size != (width, height):
