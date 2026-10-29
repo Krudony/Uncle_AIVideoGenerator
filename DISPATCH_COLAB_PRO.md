@@ -10,7 +10,13 @@ Each claimed job:
 2. Runs MiniMax H3 image-to-video (`fl2va`) with that image as `first_frame` and a motion prompt derived from the same scene.
 3. Uploads the mp4 to the relay.
 
-Per scene on an A100: **768×768**, or **1344×768** only when the job aspect is 16:9. **5 seconds at 24 fps.** H3's frame grid is `17k+5`, so the worker submits **124 frames** (~5.17s). That is the length of the verified `/workspace/colab-zimage/h3` run (`workflow_api.json` / `run_h3.sh`). 120 frames is not a legal H3 length. The studio's 8 second field is ignored. Concatenate the 8 scene files afterward. Do not render 15s × 8.
+Per scene on an A100:
+
+- **9:16** (dog-cat and the studio default): **768×1344**. The Z-Image latent uses the same size. This is the H3 short edge of 768 and the 768×1344 pixel cap, not a square and not a crop of 768².
+- **16:9**: **1344×768**.
+- **1:1** or anything else: **768×768**.
+
+Length follows `job['duration']`. Episodes are 8 seconds, so the worker submits **192 frames** at 24 fps (`h3_length(8)`). 5 seconds is 124 frames (120 is not on the `17k+5` grid). Anything above 8 seconds, including 15, is capped at 192 frames. Do not render the native 15 second / 362-frame length. Concatenate the scene files afterward.
 
 ## Do not
 

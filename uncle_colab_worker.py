@@ -4,8 +4,9 @@
 Real clips (default, BACKEND=comfy) on a Colab Pro A100 that already has ComfyUI:
 
   1. Z-Image Turbo still from the scene prompt
-  2. MiniMax H3 fl2va image-to-video, 768x768 (1344x768 only for 16:9),
-     124 frames at 24 fps (~5.17s). Concatenate scenes later.
+  2. MiniMax H3 fl2va image-to-video at the same frame size as the still:
+     768x768, 1344x768 for 16:9, or 768x1344 for 9:16.
+     Length follows job duration, capped at 8 seconds (192 frames at 24 fps).
 
 BACKEND=ffmpeg writes a blue smoke mp4 for bridge tests only.
 INSTALL_MODEL / damo-vilab is not a generate path.
@@ -16,6 +17,7 @@ Env:
   BACKEND               comfy (default) or ffmpeg
   COMFY_URL             default http://127.0.0.1:8188
   KEYFRAME_IMAGE        optional existing Z-Image still; H3 still runs as I2V
+  H3_SECONDS            fallback seconds when the job has no duration (default 8, max 8)
   COLAB_WORKER_LOCK     flock path, default /tmp/uncle_colab_worker.lock
   MAX_EMPTY_POLLS       stop after this many empty claims (0 keeps polling)
 

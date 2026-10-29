@@ -24,10 +24,13 @@ H3_CLIP_DEFAULT = 'qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors'
 H3_VIDEO_VAE_DEFAULT = 'minimax_h3_video_vae_fp16.safetensors'
 H3_AUDIO_VAE_DEFAULT = 'minimax_h3_audio_vae_fp32.safetensors'
 H3_SEED_DEFAULT = 2026101903
-SCENE_SECONDS = 5.0
-# 5 * 24 = 120 is not a legal H3 length. align_frame_count(120) == 124 (~5.17s),
-# which is the length of the verified colab-zimage clip and the node default.
-H3_FRAMES = 124
+# Episode scenes are 8 seconds. 8*24=192, which is already on the 17k+5 grid.
+# 5 seconds snaps to 124 (~5.17s). 15 seconds snaps to 362; that length stays unused.
+DEFAULT_SCENE_SECONDS = 8.0
+MAX_SCENE_SECONDS = 8.0
+MIN_SCENE_SECONDS = 5.0
+H3_FRAMES_8S = 192
+H3_FRAMES_5S = 124
 
 def _env(name, default):
     value = os.environ.get(name, '').strip()
@@ -54,11 +57,12 @@ def h3_video_vae():
 def h3_audio_vae():
     return _env('H3_AUDIO_VAE', H3_AUDIO_VAE_DEFAULT)
 
-def h3_length(seconds=SCENE_SECONDS):
+def h3_length(seconds=DEFAULT_SCENE_SECONDS):
     """Snap a duration to H3's 17k+5 frame grid at 24 fps.
 
-    Same rule as ComfyUI align_frame_count and the template expression
-    ``max(5, round(seconds * 24))`` then step up until ``n % 17 == 5``.
+    Same rule as ComfyUI align_frame_count: start at ``round(seconds * 24)``
+    and step up until ``n % 17 == 5``. ``h3_length(8)`` is 192. ``h3_length(5)``
+    is 124 because 120 is not on the grid.
     """
     raw = max(5, int(round(float(seconds) * 24)))
     frame_count = raw
@@ -66,23 +70,48 @@ def h3_length(seconds=SCENE_SECONDS):
         frame_count += 1
     return frame_count
 
-def scene_length():
-    raw = os.environ.get('H3_SECONDS', '5').strip()
-    if raw not in {'5', '5.0'}:
-        raise SystemExit(
-            'H3 clips are fixed at 5 seconds (124 frames on the 17k+5 grid). '
-            'Concatenate scenes afterward; do not render 15 second clips.'
-        )
-    length = h3_length(SCENE_SECONDS)
-    if length != H3_FRAMES:
-        raise RuntimeError(f'H3 5-second length drifted to {length}')
-    return length
+def _bounded_seconds(seconds):
+    seconds = float(seconds)
+    if seconds > MAX_SCENE_SECONDS:
+        seconds = MAX_SCENE_SECONDS
+    if seconds < MIN_SCENE_SECONDS:
+        seconds = MIN_SCENE_SECONDS
+    return seconds
+
+def scene_seconds(job=None):
+    """Job duration wins. ``H3_SECONDS`` is the fallback when a job omits it.
+
+    Anything above 8 seconds is capped at 8 (192 frames). A 15 second request
+    does not become the native 362-frame length.
+    """
+    seconds = None
+    if job is not None and str(job.get('duration') or '').strip():
+        try:
+            seconds = float(job['duration'])
+        except (TypeError, ValueError):
+            raise SystemExit(f"Invalid job duration: {job.get('duration')}")
+    if seconds is None:
+        raw = os.environ.get('H3_SECONDS', '').strip()
+        if raw:
+            try:
+                seconds = float(raw)
+            except ValueError:
+                raise SystemExit(f'Invalid H3_SECONDS: {raw}')
+        else:
+            seconds = DEFAULT_SCENE_SECONDS
+    return _bounded_seconds(seconds)
+
+def scene_length(job=None):
+    return h3_length(scene_seconds(job))
 
 def frame_size(aspect_ratio):
-    """768 square, or the native H3 16:9 canvas when the job asks for it."""
+    """Square, H3 16:9 landscape, or 9:16 portrait. Short edge stays 768.
+
+    Portrait is 768×1344, the same pixel budget as 1344×768, both divisible by 32.
+    """
     text = (aspect_ratio or '').strip().lower().replace(' ', '')
     if '9:16' in text or '9x16' in text:
-        return 768, 768
+        return 768, 1344
     if '16:9' in text or '16x9' in text:
         return 1344, 768
     return 768, 768
@@ -113,11 +142,12 @@ def keyframe_prompt(prompt):
         + prompt.strip()
     )
 
-def motion_prompt(prompt):
+def motion_prompt(prompt, seconds=DEFAULT_SCENE_SECONDS):
+    shown = int(round(float(seconds)))
     return (
         'The clip opens exactly on the keyframe and keeps the same characters, '
-        'wardrobe, and setting. Ignore any 8-second or 15-second duration written '
-        'in the scene. This is one continuous five-second shot. '
+        'wardrobe, and setting. '
+        f'This is one continuous shot of about {shown} seconds. '
         + prompt.strip()
         + ' Gentle camera move that follows the action. No on-screen text, no '
         'subtitles, no scene cuts. Audio: natural sound and light ambience that '
@@ -204,10 +234,15 @@ def assert_i2v(workflow):
     node = next(n for n in workflow.values() if n['class_type'] == 'MiniMaxH3ImageToVideo')
     if not node['inputs'].get('first_frame'):
         raise RuntimeError('Refusing H3 text-to-video. A Z-Image keyframe is required.')
-    if int(node['inputs']['length']) != scene_length():
-        raise RuntimeError('H3 length drifted from the 5 second grid')
-    if int(node['inputs']['width']) not in (768, 1344) or int(node['inputs']['height']) != 768:
-        raise RuntimeError('H3 frame size must be 768x768 or 1344x768')
+    length = int(node['inputs']['length'])
+    if length % 17 != 5 or length < 5 or length > H3_FRAMES_8S:
+        raise RuntimeError(
+            f'H3 length {length} is outside 5–8 seconds on the 17k+5 grid (max {H3_FRAMES_8S} frames)'
+        )
+    width = int(node['inputs']['width'])
+    height = int(node['inputs']['height'])
+    if (width, height) not in {(768, 768), (1344, 768), (768, 1344)}:
+        raise RuntimeError('H3 frame size must be 768x768, 1344x768, or 768x1344')
     return node
 
 def output_files(history_item):
@@ -342,7 +377,8 @@ def render_comfy(job, out_path, client, workdir):
     """Keyframe (Z-Image) then H3 I2V. KEYFRAME_IMAGE skips only the still call."""
     prompt = scene_prompt(job)
     width, height = frame_size(job.get('aspect_ratio'))
-    length = scene_length()
+    seconds = scene_seconds(job)
+    length = h3_length(seconds)
     seed = seed_for(job_identity(job))
     jid = safe_id(job_identity(job))
     workdir = Path(workdir)
@@ -363,7 +399,7 @@ def render_comfy(job, out_path, client, workdir):
         client.free()
     image_name = client.upload_image(key_path)
     video = h3_workflow(
-        motion_prompt(prompt), width, height, length, seed, image_name,
+        motion_prompt(prompt, seconds), width, height, length, seed, image_name,
         f'video/uncle_h3_{jid}',
     )
     assert_i2v(video)

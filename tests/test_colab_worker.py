@@ -36,25 +36,52 @@ class GridTests(EnvGuard):
     def test_five_seconds_snaps_to_verified_h3_length(self):
         self.assertEqual(colab_comfy.h3_length(5), 124)
         self.assertNotEqual(colab_comfy.h3_length(5), 120)
-        self.assertEqual(colab_comfy.scene_length(), 124)
+        self.assertEqual(colab_comfy.scene_length({'duration': 5}), 124)
 
-    def test_longer_than_five_seconds_is_rejected(self):
+    def test_eight_seconds_is_192_frames(self):
+        self.assertEqual(colab_comfy.h3_length(8), 192)
+        self.assertEqual(192 / 24, 8)
+        self.assertEqual(colab_comfy.scene_length(), 192)
+        self.assertEqual(colab_comfy.scene_length({'duration': 8}), 192)
+        os.environ['H3_SECONDS'] = '8'
+        self.assertEqual(colab_comfy.scene_length(), 192)
+        self.assertEqual(colab_comfy.scene_length({'duration': 8}), 192)
+
+    def test_fifteen_seconds_caps_at_eight(self):
+        self.assertEqual(colab_comfy.h3_length(15), 362)
+        self.assertEqual(colab_comfy.scene_length({'duration': 15}), 192)
         os.environ['H3_SECONDS'] = '15'
-        with self.assertRaises(SystemExit):
-            colab_comfy.scene_length()
+        self.assertEqual(colab_comfy.scene_length(), 192)
 
     def test_frame_size(self):
         self.assertEqual(colab_comfy.frame_size(''), (768, 768))
         self.assertEqual(colab_comfy.frame_size('1:1'), (768, 768))
-        self.assertEqual(colab_comfy.frame_size('9:16'), (768, 768))
+        self.assertEqual(colab_comfy.frame_size('9:16'), (768, 1344))
+        self.assertEqual(colab_comfy.frame_size('9 : 16'), (768, 1344))
         self.assertEqual(colab_comfy.frame_size('16:9'), (1344, 768))
         self.assertEqual(colab_comfy.frame_size('16 : 9'), (1344, 768))
 
+    def test_portrait_i2v_accepts_768_by_1344(self):
+        graph = colab_comfy.h3_workflow('move', 768, 1344, 192, 1, 'key.png', 'video/uncle')
+        node = colab_comfy.assert_i2v(graph)
+        self.assertEqual(node['inputs']['width'], 768)
+        self.assertEqual(node['inputs']['height'], 1344)
+        self.assertEqual(node['inputs']['length'], 192)
+        still = colab_comfy.zimage_workflow('still', *colab_comfy.frame_size('9:16'), 1, 'uncle_zimage/job')
+        self.assertEqual(still['13']['inputs']['width'], 768)
+        self.assertEqual(still['13']['inputs']['height'], 1344)
+        too_long = colab_comfy.h3_workflow('move', 768, 1344, 362, 1, 'key.png', 'video/uncle')
+        with self.assertRaises(RuntimeError):
+            colab_comfy.assert_i2v(too_long)
+
     def test_prompts_keep_the_scene_text(self):
         scene = 'Cute cartoon dog waving hello, talking to a cat'
+        motion = colab_comfy.motion_prompt(scene, 8)
         self.assertIn(scene, colab_comfy.keyframe_prompt(scene))
-        self.assertIn(scene, colab_comfy.motion_prompt(scene))
-        self.assertIn('five-second', colab_comfy.motion_prompt(scene))
+        self.assertIn(scene, motion)
+        self.assertIn('about 8 seconds', motion)
+        self.assertNotIn('five-second', motion)
+        self.assertNotIn('Ignore any 8-second', motion)
 
     def test_job_identity_accepts_relay_and_local_shapes(self):
         self.assertEqual(colab_comfy.job_identity({'job_id': 'colab-a', 'id': 'other'}), 'colab-a')
@@ -104,7 +131,7 @@ class RelayGlueTests(EnvGuard):
             'job_id': 'colab-dog',
             'prompt': 'Cute cartoon dog waving hello, talking to a cat',
             'aspect_ratio': '9:16',
-            'duration': 15,
+            'duration': 8,
         }
         done, failed, comfy, relay = self._run(job)
         self.assertEqual((done, failed), (1, 0))
@@ -112,11 +139,15 @@ class RelayGlueTests(EnvGuard):
         self.assertEqual(len(comfy.prompts), 2)
         still, video = comfy.prompts
         self.assertEqual(still['28']['inputs']['unet_name'], colab_comfy.ZIMAGE_UNET_DEFAULT)
+        self.assertEqual(still['13']['inputs']['width'], 768)
+        self.assertEqual(still['13']['inputs']['height'], 1344)
         self.assertIn(job['prompt'], still['27']['inputs']['text'])
         node = colab_comfy.assert_i2v(video)
         self.assertEqual(node['inputs']['width'], 768)
-        self.assertEqual(node['inputs']['height'], 768)
-        self.assertEqual(node['inputs']['length'], 124)
+        self.assertEqual(node['inputs']['height'], 1344)
+        self.assertEqual(node['inputs']['length'], 192)
+        self.assertIn('about 8 seconds', node['inputs']['prompt'])
+        self.assertNotIn('five-second', node['inputs']['prompt'])
         self.assertIn(job['prompt'], node['inputs']['prompt'])
         self.assertEqual(video['114']['inputs']['image'], 'key.png')
         self.assertEqual(len(comfy.uploads), 1)
@@ -129,6 +160,19 @@ class RelayGlueTests(EnvGuard):
         self.assertIn(b'done', result['body'])
         self.assertIn(b'FAKEMP4', result['body'])
         self.assertIn(b'out.mp4', result['body'])
+
+    def test_duration_15_stays_at_192_frames(self):
+        job = {
+            'job_id': 'colab-long',
+            'prompt': 'a long take',
+            'aspect_ratio': '9:16',
+            'duration': 15,
+        }
+        _, _, comfy, _relay = self._run(job)
+        self.assertEqual(comfy.prompts[1]['104']['inputs']['length'], 192)
+        self.assertNotEqual(comfy.prompts[1]['104']['inputs']['length'], 362)
+        self.assertEqual(comfy.prompts[0]['13']['inputs']['width'], 768)
+        self.assertEqual(comfy.prompts[0]['13']['inputs']['height'], 1344)
 
     def test_sixteen_by_nine_uses_native_h3_canvas(self):
         job = {'job_id': 'colab-wide', 'prompt': 'wide street', 'aspect_ratio': '16:9', 'duration': 8}

@@ -205,7 +205,7 @@ Real clips use one path:
 1. Z-Image Turbo still from the scene prompt, same frame size as the video.
 2. MiniMax H3 `fl2va` image-to-video with that still as `first_frame`.
 
-Each scene is **768×768**, or **1344×768** when the job aspect is 16:9. The clip is **5 seconds at 24 fps**. H3 only accepts `17k+5` frame counts, so 120 frames is not legal and the worker submits **124 frames** (~5.17s), the length of the verified colab-zimage run. The studio duration field (often 8) is ignored. Concatenate finished scenes later. Do not render 15 second scenes.
+Each scene is **768×768**, **1344×768** when the job aspect is 16:9, or **768×1344** when it is 9:16. The Z-Image still uses that same size. Length follows the job duration. Episodes are 8 seconds, and `h3_length(8)` is **192 frames** (exactly 8.0s on the `17k+5` grid). A 5 second job is 124 frames, because 120 is not a legal H3 length. Durations above 8 seconds are capped at 192 frames, so a 15 second request does not become 362 frames.
 
 `damo-vilab` is not a backend. `INSTALL_MODEL` does not select a model. Wan Animate is not this queue. Smoke mp4s for bridge tests only: `BACKEND=ffmpeg`.
 
