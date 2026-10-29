@@ -336,5 +336,5 @@ class ProcessTests(EnvGuard):
         self.assertIn("os.environ.get('COLAB_RELAY_URL')", worker_text)
         self.assertIn('/api/colab/next', worker_text)
         self.assertIn('/api/colab/result/', worker_text)
-        self.assertIn("data={'status': 'failed'", worker_text)
+        self.assertIn("'status': (None, 'failed')", worker_text)
         self.assertIn("data={'status': 'done'}", worker_text)

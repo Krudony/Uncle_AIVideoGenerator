@@ -35,8 +35,8 @@ Prefer `COLAB_RELAY_URL`. `UNCLE_URL` is only a fallback.
 - Relay: `https://uncle-colab-relay.facebook-chatbot.workers.dev`
 - Header: `X-Worker-Token: $COLAB_WORKER_TOKEN` (from the Uncle `.env`, do not paste it into chat)
 - Claim: `POST /api/colab/next`
-- Upload: `POST /api/colab/result/{job_id}` multipart field `video` (`out.mp4`) and form `status=done`
-- Failure: same URL, form `status=failed` and `error`
+- Upload: `POST /api/colab/result/{job_id}` multipart field `video` (`out.mp4`) and form `status=done`. The relay stores the bytes before it marks the job done.
+- Failure: same URL, multipart fields `status=failed` and `error`. A failure is never recorded as done with an empty file.
 
 ## What the Colab runtime already needs
 

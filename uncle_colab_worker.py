@@ -93,10 +93,15 @@ def claim(relay_url, headers):
     return response.json().get('job')
 
 def fail(relay_url, headers, job_id, err):
+    # Multipart, same as a successful upload. A urlencoded body is not JSON, and
+    # the relay used to record that as done with an empty file.
     response = requests.post(
         f'{relay_url}/api/colab/result/{job_id}',
         headers=headers,
-        data={'status': 'failed', 'error': str(err)[:500]},
+        files={
+            'status': (None, 'failed'),
+            'error': (None, str(err)[:500]),
+        },
         timeout=60,
     )
     response.raise_for_status()
