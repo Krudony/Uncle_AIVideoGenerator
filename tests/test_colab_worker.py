@@ -1,4 +1,5 @@
 """Relay claim/upload glue with a mocked ComfyUI. No GPU."""
+import io
 import os
 import tempfile
 import unittest
@@ -85,7 +86,7 @@ class GridTests(EnvGuard):
         self.assertIn('about 8 seconds', motion)
         self.assertNotIn('five-second', motion)
         self.assertNotIn('Ignore any 8-second', motion)
-        for phrase in ('comic panels', 'triptych', 'stacked strips', 'storyboard grid', 'repeated bands'):
+        for phrase in ('comic', 'triptych', 'stacked strips', 'storyboard', 'grid', 'repeated bands'):
             self.assertIn(phrase, colab_comfy.keyframe_prompt(scene))
             self.assertIn(phrase, motion)
 
@@ -132,7 +133,41 @@ class GridTests(EnvGuard):
         self.assertGreater(scores['h3'], 0.85)
         clean, clean_scores = colab_comfy.keyframe_is_tiled(colab_comfy.single_scene_image(96, 96))
         self.assertFalse(clean)
-        self.assertLessEqual(max(clean_scores.values()), 0.85)
+        self.assertLessEqual(max(value for key, value in clean_scores.items()
+                                 if not key.startswith('portrait_')), 0.75)
+
+    def test_tile_gate_rejects_mixed_portrait_grid(self):
+        from PIL import Image
+        fixture = Path(__file__).parent / 'fixtures' / 'dogcat_9657_early.png'
+        with Image.open(fixture) as img:
+            tiled, scores = colab_comfy.keyframe_is_tiled(img)
+        self.assertTrue(tiled, scores)
+        self.assertEqual(scores['portrait_n'], 3.0)
+        self.assertGreaterEqual(scores['portrait_hits'], 5.0)
+        self.assertLess(scores['portrait_adj'], 0.50)
+
+    def test_tile_gate_keeps_single_scene_duo(self):
+        from PIL import Image, ImageDraw
+        image = Image.new('RGB', (384, 256), '#9ecfe0')
+        draw = ImageDraw.Draw(image)
+        draw.rectangle((0, 175, 383, 255), fill='#70a458')
+        # Dog and cat share a ground plane, with no panels or repeated rows.
+        draw.ellipse((40, 100, 160, 235), fill='#b67c48')
+        draw.ellipse((30, 60, 165, 170), fill='#c99761')
+        draw.ellipse((25, 70, 60, 155), fill='#805436')
+        draw.ellipse((140, 70, 175, 155), fill='#805436')
+        draw.ellipse((65, 98, 77, 111), fill='black')
+        draw.ellipse((117, 98, 129, 111), fill='black')
+        draw.ellipse((86, 123, 110, 140), fill='#322b27')
+        draw.ellipse((230, 120, 335, 235), fill='#8c9299')
+        draw.polygon(((225, 110), (230, 50), (265, 85), (300, 85),
+                      (330, 50), (340, 110)), fill='#8c9299')
+        draw.ellipse((225, 80, 340, 175), fill='#a4aab0')
+        draw.ellipse((247, 115, 262, 128), fill='#475b23')
+        draw.ellipse((301, 115, 316, 128), fill='#475b23')
+        draw.polygon(((275, 140), (287, 140), (281, 148)), fill='#a6606b')
+        tiled, scores = colab_comfy.keyframe_is_tiled(image)
+        self.assertFalse(tiled, scores)
 
     def test_tile_gate_rejects_horizontal_comic_grid(self):
         tiled, scores = colab_comfy.keyframe_is_tiled(colab_comfy.contact_sheet_image(96, 160, 3, 5))
@@ -200,22 +235,29 @@ class RelayGlueTests(EnvGuard):
         self.assertIn(b'FAKEMP4', result['body'])
         self.assertIn(b'out.mp4', result['body'])
 
-    def test_tiled_keyframes_reroll_and_never_reach_h3(self):
+    def test_tiled_keyframes_reroll_then_salvage_before_h3(self):
+        from PIL import Image
         job = {'job_id': 'colab-tile', 'prompt': 'dog and cat', 'aspect_ratio': '9:16', 'duration': 8}
         tiled = colab_comfy.png_bytes(colab_comfy.stacked_strip_image(90, 90))
         with colab_comfy.serve_mock_comfy() as comfy, colab_comfy.serve_mock_relay([job]) as relay:
-            comfy.state.key_pngs = [tiled, tiled, tiled]
+            comfy.state.key_pngs = [tiled] * colab_comfy.KEYFRAME_ATTEMPTS
             done, failed = worker.process_available_jobs(
                 relay.url, 'secret-token', comfy_url=comfy.url, max_jobs=1, max_empty=1,
             )
-        self.assertEqual((done, failed), (0, 1))
-        self.assertEqual(len(comfy.state.prompts), 3)
+        self.assertEqual((done, failed), (1, 0))
+        self.assertEqual(len(comfy.state.prompts), colab_comfy.KEYFRAME_ATTEMPTS + 1)
         self.assertTrue(all(
             node.get('class_type') != 'MiniMaxH3ImageToVideo'
-            for prompt in comfy.state.prompts for node in prompt.values()
+            for prompt in comfy.state.prompts[:-1] for node in prompt.values()
         ))
-        self.assertIn(b'failed', relay.state.results[0]['body'])
-        self.assertIn(b'tiled', relay.state.results[0]['body'])
+        self.assertEqual(comfy.state.prompts[-1]['104']['class_type'], 'MiniMaxH3ImageToVideo')
+        self.assertEqual(len(comfy.state.uploads), 1)
+        upload = comfy.state.uploads[0]
+        with Image.open(io.BytesIO(upload[upload.index(b'\x89PNG\r\n\x1a\n'):])) as image:
+            self.assertEqual(image.size, (768, 1344))
+            is_tiled, scores = colab_comfy.keyframe_is_tiled(image)
+            self.assertFalse(is_tiled, scores)
+        self.assertIn(b'done', relay.state.results[0]['body'])
 
     def test_tiled_keyframe_rerolls_then_accepts_a_clean_still(self):
         job = {'job_id': 'colab-reroll', 'prompt': 'dog and cat', 'aspect_ratio': '1:1', 'duration': 8}
@@ -230,7 +272,8 @@ class RelayGlueTests(EnvGuard):
         stills = [prompt for prompt in comfy.state.prompts if '13' in prompt and prompt['13']['class_type'] == 'EmptySD3LatentImage']
         self.assertEqual(len(stills), 2)
         self.assertEqual(stills[0]['13']['inputs']['width'], 1024)
-        self.assertEqual(stills[1]['3']['inputs']['seed'], stills[0]['3']['inputs']['seed'] + 1)
+        self.assertEqual(stills[1]['3']['inputs']['seed'],
+                         (stills[0]['3']['inputs']['seed'] + 1_000_003) % (2**31 - 1))
         h3 = [prompt for prompt in comfy.state.prompts if any(node.get('class_type') == 'MiniMaxH3ImageToVideo' for node in prompt.values())]
         self.assertEqual(len(h3), 1)
         self.assertEqual(h3[0]['104']['inputs']['width'], 768)

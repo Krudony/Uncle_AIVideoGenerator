@@ -37,7 +37,7 @@ H3_FRAMES_5S = 124
 # Official Z-Image Turbo template latent. 768 and 768×1344 make EmptySD3 emit stacked panels.
 ZIMAGE_SIDE = 1024
 KEYFRAME_ATTEMPTS = int(os.environ.get('KEYFRAME_ATTEMPTS', '10') or 10)
-TILE_CORR_MAX = 0.85
+TILE_CORR_MAX = 0.75
 SINGLE_FRAME_RULE = (
     'Full-bleed single cinematic frame filling the entire image. '
     'No comic panels, no triptych, no stacked strips, no collage, '
@@ -212,6 +212,58 @@ def vertical_tile_scores(image):
     """Back-compat alias: now returns vertical and horizontal scores."""
     return tile_scores(image)
 
+def portrait_grid_hits(image):
+    """Find grids of centered, compact subjects with distinct adjacent cells."""
+    best = None
+    flagged = False
+    for n in (2, 3):
+        portraits = 0
+        thumbs = []
+        for row in range(n):
+            for col in range(n):
+                cell = image.crop((col * image.width // n, row * image.height // n,
+                                   (col + 1) * image.width // n, (row + 1) * image.height // n))
+                cell = cell.convert('L').resize((48, 48), _resample())
+                thumbs.append(list(cell.resize((12, 12), _resample()).getdata()))
+                gray = list(cell.getdata())
+                mean = sum(gray) / len(gray)
+                energy = []
+                for y in range(48):
+                    for x in range(48):
+                        dx = (gray[y * 48 + min(x + 1, 47)]
+                              - gray[y * 48 + max(x - 1, 0)]) / 2
+                        dy = (gray[min(y + 1, 47) * 48 + x]
+                              - gray[max(y - 1, 0) * 48 + x]) / 2
+                        energy.append(abs(gray[y * 48 + x] - mean) + math.hypot(dx, dy))
+                top = sorted(range(len(energy)), key=energy.__getitem__, reverse=True)[:len(energy) // 5]
+                cx = sum(i % 48 + 0.5 for i in top) / len(top)
+                cy = sum(i // 48 + 0.5 for i in top) / len(top)
+                distance = math.hypot((cx - 24) / 24, (cy - 24) / 24)
+                contrast = (sum(energy[i] for i in top) / len(top)
+                            / max(sum(energy) / len(energy), 1e-6))
+                spread = math.sqrt(sum(((i % 48 + 0.5 - cx) / 24) ** 2
+                                       + ((i // 48 + 0.5 - cy) / 24) ** 2
+                                       for i in top) / len(top))
+                portraits += distance < 0.45 and contrast > 1.55 and spread < 0.78
+        adjacent = []
+        for row in range(n):
+            for col in range(n):
+                index = row * n + col
+                neighbors = []
+                if col + 1 < n:
+                    neighbors.append(index + 1)
+                if row + 1 < n:
+                    neighbors.append(index + n)
+                for neighbor in neighbors:
+                    pair = thumbs[index] + thumbs[neighbor]
+                    adjacent.append(_corr_shift(pair, 144, 2, 1))
+        adj_mean = sum(adjacent) / len(adjacent)
+        hit = portraits >= math.ceil(0.55 * n * n) and adj_mean < 0.50
+        if best is None or (hit, portraits / (n * n)) > (flagged, best['portraits'] / best['n'] ** 2):
+            best = {'n': n, 'portraits': portraits, 'adj_mean': adj_mean}
+        flagged = flagged or hit
+    return flagged, best
+
 def _band_crops(image, key):
     bands = int(key[1:])
     if key[0] == 'h':
@@ -221,10 +273,16 @@ def _band_crops(image, key):
             for i in range(bands)]
 
 def salvage_keyframe(image, scores, width, height, threshold=None):
-    """Crop the least-tiled band along the dominant axis (columns for w*, rows
-    for h*), repeating once on the other axis for 2-D grids, then fit_cover."""
+    """Crop a central portrait cell, salvage remaining repeated bands, then fit."""
     if threshold is None:
         threshold = tile_corr_max()
+    if scores.get('portrait_hits', 0) > 0:
+        n = int(scores['portrait_n'])
+        center = n // 2
+        image = image.crop((center * image.width // n, center * image.height // n,
+                            (center + 1) * image.width // n, (center + 1) * image.height // n))
+        scores = tile_scores(image)
+    scores = {key: value for key, value in scores.items() if not key.startswith('portrait_')}
     for _ in range(3):
         if not scores or max(scores.values()) <= threshold:
             break
@@ -255,7 +313,11 @@ def keyframe_is_tiled(image, threshold=None):
     if threshold is None:
         threshold = tile_corr_max()
     scores = tile_scores(image)
-    return max(scores.values()) > threshold, scores
+    auto = max(scores.values()) > threshold
+    port, info = portrait_grid_hits(image)
+    scores.update(portrait_n=float(info['n']), portrait_hits=float(info['portraits']),
+                  portrait_adj=float(info['adj_mean']))
+    return auto or port, scores
 
 def single_scene_image(width=96, height=96):
     """A non-repeating still, for tests and the Comfy HTTP mock."""
@@ -599,11 +661,11 @@ def render_comfy(job, out_path, client, workdir):
             with _Image().open(raw_path) as raw:
                 image = raw.copy()
             fitted, scores = _fitted_keyframe(image, width, height)
-            max_score = max(scores.values())
+            max_score = max(value for key, value in scores.items() if not key.startswith('portrait_'))
             if best is None or max_score < best[0]:
                 best = (max_score, image, attempt_seed, scores)
             if fitted is None:
-                print('keyframe tiled', scores, 'seed', attempt_seed)
+                print('keyframe tiled', scores, f"portrait={scores['portrait_hits']}", 'seed', attempt_seed)
                 continue
             seed = attempt_seed
             print('keyframe ok', scores, 'seed', seed)
