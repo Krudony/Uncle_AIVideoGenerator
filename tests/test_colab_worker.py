@@ -134,6 +134,24 @@ class GridTests(EnvGuard):
         self.assertFalse(clean)
         self.assertLessEqual(max(clean_scores.values()), 0.85)
 
+    def test_tile_gate_rejects_horizontal_comic_grid(self):
+        tiled, scores = colab_comfy.keyframe_is_tiled(colab_comfy.contact_sheet_image(96, 160, 3, 5))
+        self.assertTrue(tiled, scores)
+        self.assertGreater(max(scores['w3'], scores['h5']), 0.85)
+        regression = os.path.join('/workspace/uncle-tile-diag', 'frame_002.png')
+        if os.path.exists(regression):
+            from PIL import Image
+            tiled, scores = colab_comfy.keyframe_is_tiled(Image.open(regression))
+            self.assertTrue(tiled, scores)
+
+    def test_salvage_of_comic_grid_yields_untiled_full_frame(self):
+        grid = colab_comfy.contact_sheet_image(300, 500, 3, 5)
+        _, scores = colab_comfy.keyframe_is_tiled(grid)
+        out = colab_comfy.salvage_keyframe(grid, scores, 768, 1344)
+        self.assertEqual(out.size, (768, 1344))
+        tiled, after = colab_comfy.keyframe_is_tiled(out)
+        self.assertFalse(tiled, after)
+
 
 class RelayGlueTests(EnvGuard):
     def _run(self, job, backend='comfy', fail_next=False, keyframe=None):

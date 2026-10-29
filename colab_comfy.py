@@ -185,28 +185,67 @@ def _corr_shift(gray, width, height, shift):
         return 0.0
     return num / denom
 
-def vertical_tile_scores(image):
-    """Normalized vertical autocorrelation at H/2 and H/3 on a small luma probe."""
+TILE_SHIFTS = (2, 3, 4, 5)
+
+def tile_scores(image):
+    """Normalized autocorrelation at H/n (rows) and W/n (columns) on a small luma probe.
+
+    Vertical keys h2..h5 catch stacked strips and odd row grids; horizontal
+    keys w2..w5 catch side-by-side comic columns (dog-cat 3x5 contact sheet).
+    """
     probe = image.convert('L')
     probe.thumbnail((96, 96), _resample())
-    width, height = probe.size
-    gray = list(probe.getdata())
-    if height < 6 or width < 2:
-        return {'h2': 0.0, 'h3': 0.0}
-    return {
-        'h2': _corr_shift(gray, width, height, height // 2),
-        'h3': _corr_shift(gray, width, height, max(1, height // 3)),
-    }
+    scores = {}
+    for axis, img in (('h', probe), ('w', probe.transpose(_Image().Transpose.TRANSPOSE)
+                                      if hasattr(_Image(), 'Transpose') else probe.transpose(5))):
+        width, height = img.size
+        gray = list(img.getdata())
+        for n in TILE_SHIFTS:
+            key = '%s%d' % (axis, n)
+            if height < 2 * n or width < 2:
+                scores[key] = 0.0
+            else:
+                scores[key] = _corr_shift(gray, width, height, max(1, height // n))
+    return scores
 
-def salvage_keyframe(image, scores, width, height):
-    bands = 2 if max(scores, key=scores.get) == 'h2' else 3
-    crops = [
-        image.crop((0, index * image.height // bands,
-                    image.width, (index + 1) * image.height // bands))
-        for index in range(bands)
-    ]
-    image = min(crops, key=lambda crop: max(vertical_tile_scores(crop).values()))
+def vertical_tile_scores(image):
+    """Back-compat alias: now returns vertical and horizontal scores."""
+    return tile_scores(image)
+
+def _band_crops(image, key):
+    bands = int(key[1:])
+    if key[0] == 'h':
+        return [image.crop((0, i * image.height // bands, image.width, (i + 1) * image.height // bands))
+                for i in range(bands)]
+    return [image.crop((i * image.width // bands, 0, (i + 1) * image.width // bands, image.height))
+            for i in range(bands)]
+
+def salvage_keyframe(image, scores, width, height, threshold=None):
+    """Crop the least-tiled band along the dominant axis (columns for w*, rows
+    for h*), repeating once on the other axis for 2-D grids, then fit_cover."""
+    if threshold is None:
+        threshold = tile_corr_max()
+    for _ in range(3):
+        if not scores or max(scores.values()) <= threshold:
+            break
+        key = max(scores, key=scores.get)
+        crops = [c for c in _band_crops(image, key) if c.width >= 8 and c.height >= 8]
+        if not crops:
+            break
+        image = min(crops, key=lambda crop: max(tile_scores(crop).values()))
+        scores = tile_scores(image)
     return fit_cover_image(image, width, height)
+
+def contact_sheet_image(width=96, height=160, cols=3, rows=5):
+    """The dog-cat-5s failure: a cols x rows comic grid of distinct-ish panels."""
+    Image = _Image()
+    pw, ph = max(1, width // cols), max(1, height // rows)
+    panel = single_scene_image(pw, ph)
+    canvas = Image.new('RGB', (pw * cols, ph * rows))
+    for r in range(rows):
+        for c in range(cols):
+            canvas.paste(panel, (c * pw, r * ph))
+    return canvas
 
 def tile_corr_max():
     raw = os.environ.get('KEYFRAME_TILE_CORR', '').strip()
@@ -215,7 +254,7 @@ def tile_corr_max():
 def keyframe_is_tiled(image, threshold=None):
     if threshold is None:
         threshold = tile_corr_max()
-    scores = vertical_tile_scores(image)
+    scores = tile_scores(image)
     return max(scores.values()) > threshold, scores
 
 def single_scene_image(width=96, height=96):
