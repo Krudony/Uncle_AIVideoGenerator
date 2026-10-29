@@ -14,6 +14,19 @@ ENV_KEYS = (
 )
 
 
+def guttered_contact_sheet(cols, rows):
+    from PIL import Image, ImageEnhance
+    panel_width, panel_height, gutter = 120, 144, 6
+    image = Image.new('RGB', (cols * panel_width + (cols - 1) * gutter,
+                              rows * panel_height + (rows - 1) * gutter), 'black')
+    panel = colab_comfy.single_scene_image(panel_width, panel_height)
+    for row in range(rows):
+        for col in range(cols):
+            cell = ImageEnhance.Brightness(panel).enhance(0.85 + (row + col) * 0.04)
+            image.paste(cell, (col * (panel_width + gutter), row * (panel_height + gutter)))
+    return image
+
+
 class EnvGuard(unittest.TestCase):
     def setUp(self):
         self._saved = {key: os.environ.get(key) for key in ENV_KEYS}
@@ -133,8 +146,8 @@ class GridTests(EnvGuard):
         self.assertGreater(scores['h3'], 0.85)
         clean, clean_scores = colab_comfy.keyframe_is_tiled(colab_comfy.single_scene_image(96, 96))
         self.assertFalse(clean)
-        self.assertLessEqual(max(value for key, value in clean_scores.items()
-                                 if not key.startswith('portrait_')), 0.75)
+        self.assertLessEqual(max(clean_scores['%s%d' % (axis, n)]
+                                 for axis in ('h', 'w') for n in colab_comfy.TILE_SHIFTS), 0.75)
 
     def test_tile_gate_rejects_mixed_portrait_grid(self):
         from PIL import Image
@@ -145,6 +158,32 @@ class GridTests(EnvGuard):
         self.assertEqual(scores['portrait_n'], 3.0)
         self.assertGreaterEqual(scores['portrait_hits'], 5.0)
         self.assertLess(scores['portrait_adj'], 0.50)
+
+    def test_tile_gate_rejects_f1b2_via_gutters(self):
+        from PIL import Image
+        fixture = Path(__file__).parent / 'fixtures' / 'dogcat_f1b2_2s.png'
+        with Image.open(fixture) as image:
+            gutter, gutter_scores = colab_comfy.comic_gutter_hits(image)
+            tiled, scores = colab_comfy.keyframe_is_tiled(image)
+            gutter_only, _ = colab_comfy.keyframe_is_tiled(image, threshold=1.0)
+        self.assertTrue(gutter, gutter_scores)
+        self.assertTrue(tiled, scores)
+        self.assertTrue(gutter_only, scores)
+        self.assertGreaterEqual(scores['gutter_h'], 2)
+        self.assertGreaterEqual(scores['gutter_v'], 1)
+        self.assertGreaterEqual(scores['gutter_d'], 30)
+
+    def test_tile_gate_rejects_guttered_contact_sheets(self):
+        for cols, rows in ((3, 4), (4, 3), (3, 3)):
+            with self.subTest(cols=cols, rows=rows):
+                image = guttered_contact_sheet(cols, rows)
+                gutter, scores = colab_comfy.comic_gutter_hits(image)
+                self.assertTrue(gutter, scores)
+                self.assertEqual(scores['gutter_h'], rows - 1)
+                self.assertEqual(scores['gutter_v'], cols - 1)
+                self.assertGreaterEqual(scores['gutter_d'], 30)
+                tiled, scores = colab_comfy.keyframe_is_tiled(image)
+                self.assertTrue(tiled, scores)
 
     def test_tile_gate_keeps_single_scene_duo(self):
         from PIL import Image, ImageDraw
@@ -182,6 +221,15 @@ class GridTests(EnvGuard):
     def test_salvage_of_comic_grid_yields_untiled_full_frame(self):
         grid = colab_comfy.contact_sheet_image(300, 500, 3, 5)
         _, scores = colab_comfy.keyframe_is_tiled(grid)
+        out = colab_comfy.salvage_keyframe(grid, scores, 768, 1344)
+        self.assertEqual(out.size, (768, 1344))
+        tiled, after = colab_comfy.keyframe_is_tiled(out)
+        self.assertFalse(tiled, after)
+
+    def test_salvage_of_guttered_grid_yields_untiled_full_frame(self):
+        grid = guttered_contact_sheet(4, 3)
+        tiled, scores = colab_comfy.keyframe_is_tiled(grid)
+        self.assertTrue(tiled, scores)
         out = colab_comfy.salvage_keyframe(grid, scores, 768, 1344)
         self.assertEqual(out.size, (768, 1344))
         tiled, after = colab_comfy.keyframe_is_tiled(out)

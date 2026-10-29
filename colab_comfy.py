@@ -38,6 +38,7 @@ H3_FRAMES_5S = 124
 ZIMAGE_SIDE = 1024
 KEYFRAME_ATTEMPTS = int(os.environ.get('KEYFRAME_ATTEMPTS', '10') or 10)
 TILE_CORR_MAX = 0.75
+GUTTER_MIN_D = 30
 SINGLE_FRAME_RULE = (
     'Full-bleed single cinematic frame filling the entire image. '
     'No comic panels, no triptych, no stacked strips, no collage, '
@@ -264,6 +265,41 @@ def portrait_grid_hits(image):
         flagged = flagged or hit
     return flagged, best
 
+def comic_gutter_hits(image):
+    """Find dark, contrasting seams across both axes of a comic grid."""
+    gray = image.convert('L')
+    Image = _Image()
+    box = getattr(getattr(Image, 'Resampling', Image), 'BOX')
+    rows = list(gray.resize((1, gray.height), box).getdata())
+    cols = list(gray.resize((gray.width, 1), box).getdata())
+
+    def seams(means, separation):
+        candidates = []
+        for i in range(20, len(means) - 20):
+            value = means[i]
+            if value >= 100 or value > min(means[i - 1], means[i + 1]):
+                continue
+            contrast = min(sum(means[i - 20:i - 5]) / 15,
+                           sum(means[i + 6:i + 21]) / 15) - value
+            if contrast >= GUTTER_MIN_D:
+                candidates.append((i, contrast))
+        selected = []
+        for i, contrast in sorted(candidates, key=lambda item: item[1], reverse=True):
+            if all(abs(i - other) >= separation for other, _ in selected):
+                selected.append((i, contrast))
+        return sorted(selected)
+
+    horizontal = seams(rows, max(28, image.height // 18))
+    vertical = seams(cols, max(22, image.width // 18))
+    contrasts = [d for _, d in horizontal + vertical]
+    mean_d = sum(contrasts) / len(contrasts) if contrasts else 0.0
+    nh, nv = len(horizontal), len(vertical)
+    hit = ((nh >= 2 and nv >= 1) or (nv >= 2 and nh >= 1)) and mean_d >= GUTTER_MIN_D
+    return hit, {'gutter_h': nh, 'gutter_v': nv, 'gutter_d': mean_d,
+                 'gutter_ys': [i for i, _ in horizontal],
+                 'gutter_xs': [i for i, _ in vertical]}
+
+
 def _band_crops(image, key):
     bands = int(key[1:])
     if key[0] == 'h':
@@ -273,16 +309,32 @@ def _band_crops(image, key):
             for i in range(bands)]
 
 def salvage_keyframe(image, scores, width, height, threshold=None):
-    """Crop a central portrait cell, salvage remaining repeated bands, then fit."""
+    """Crop between gutters or salvage a central portrait cell/repeated band."""
     if threshold is None:
         threshold = tile_corr_max()
+    if scores.get('gutter_ys') or scores.get('gutter_xs'):
+        def intervals(seams, size):
+            # Leave the seam pixels outside the selected cell.
+            starts = [0] + [min(size, seam + 5) for seam in seams]
+            ends = [max(0, seam - 5) for seam in seams] + [size]
+            return [(a, b) for a, b in zip(starts, ends) if b - a >= 8]
+
+        cells = [(left, top, right, bottom)
+                 for left, right in intervals(scores.get('gutter_xs', []), image.width)
+                 for top, bottom in intervals(scores.get('gutter_ys', []), image.height)]
+        if cells:
+            cell = max(cells, key=lambda c: (
+                (c[2] - c[0]) * (c[3] - c[1]),
+                -((c[0] + c[2] - image.width) ** 2 + (c[1] + c[3] - image.height) ** 2)))
+            return fit_cover_image(image.crop(cell), width, height)
     if scores.get('portrait_hits', 0) > 0:
         n = int(scores['portrait_n'])
         center = n // 2
         image = image.crop((center * image.width // n, center * image.height // n,
                             (center + 1) * image.width // n, (center + 1) * image.height // n))
         scores = tile_scores(image)
-    scores = {key: value for key, value in scores.items() if not key.startswith('portrait_')}
+    scores = {key: scores[key] for key in ('%s%d' % (axis, n)
+              for axis in ('h', 'w') for n in TILE_SHIFTS) if key in scores}
     for _ in range(3):
         if not scores or max(scores.values()) <= threshold:
             break
@@ -317,7 +369,9 @@ def keyframe_is_tiled(image, threshold=None):
     port, info = portrait_grid_hits(image)
     scores.update(portrait_n=float(info['n']), portrait_hits=float(info['portraits']),
                   portrait_adj=float(info['adj_mean']))
-    return auto or port, scores
+    gut, info = comic_gutter_hits(image)
+    scores.update(info)
+    return auto or port or gut, scores
 
 def single_scene_image(width=96, height=96):
     """A non-repeating still, for tests and the Comfy HTTP mock."""
@@ -661,7 +715,8 @@ def render_comfy(job, out_path, client, workdir):
             with _Image().open(raw_path) as raw:
                 image = raw.copy()
             fitted, scores = _fitted_keyframe(image, width, height)
-            max_score = max(value for key, value in scores.items() if not key.startswith('portrait_'))
+            max_score = max(scores['%s%d' % (axis, n)]
+                            for axis in ('h', 'w') for n in TILE_SHIFTS)
             if best is None or max_score < best[0]:
                 best = (max_score, image, attempt_seed, scores)
             if fitted is None:
