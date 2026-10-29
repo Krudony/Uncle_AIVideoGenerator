@@ -3,8 +3,11 @@
 This matches the verified colab-zimage H3 run (fl2va, no turbo LoRA) and the
 official Z-Image Turbo template. The worker never calls OpenRouter /videos.
 """
+import io
 import json
+import math
 import os
+import random
 import re
 import threading
 import time
@@ -31,6 +34,15 @@ MAX_SCENE_SECONDS = 8.0
 MIN_SCENE_SECONDS = 5.0
 H3_FRAMES_8S = 192
 H3_FRAMES_5S = 124
+# Official Z-Image Turbo template latent. 768 and 768×1344 make EmptySD3 emit stacked panels.
+ZIMAGE_SIDE = 1024
+KEYFRAME_ATTEMPTS = 3
+TILE_CORR_MAX = 0.85
+SINGLE_FRAME_RULE = (
+    'Full-bleed single cinematic frame filling the entire image. '
+    'No comic panels, no triptych, no stacked strips, no collage, '
+    'no split screen, no storyboard grid, no repeated bands.'
+)
 
 def _env(name, default):
     value = os.environ.get(name, '').strip()
@@ -116,6 +128,115 @@ def frame_size(aspect_ratio):
         return 1344, 768
     return 768, 768
 
+def zimage_latent_size():
+    """Z-Image always samples the official 1024 square, never the H3 canvas."""
+    return ZIMAGE_SIDE, ZIMAGE_SIDE
+
+def _Image():
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        raise RuntimeError('Pillow is required to fit and check Z-Image keyframes') from exc
+    return Image
+
+def _resample():
+    Image = _Image()
+    return getattr(getattr(Image, 'Resampling', Image), 'LANCZOS')
+
+def fit_cover_image(image, width, height):
+    """Scale so the image covers the H3 canvas, then center-crop. No letterbox."""
+    image = image.convert('RGB')
+    width, height = int(width), int(height)
+    scale = max(width / image.width, height / image.height)
+    resized = image.resize(
+        (max(width, int(round(image.width * scale))), max(height, int(round(image.height * scale)))),
+        _resample(),
+    )
+    left = max(0, (resized.width - width) // 2)
+    top = max(0, (resized.height - height) // 2)
+    return resized.crop((left, top, left + width, top + height))
+
+def _corr_shift(gray, width, height, shift):
+    if shift <= 0 or shift >= height:
+        return 0.0
+    rows = height - shift
+    count = rows * width
+    sum_a = sum_b = 0
+    for y in range(rows):
+        a0 = y * width
+        b0 = (y + shift) * width
+        for x in range(width):
+            sum_a += gray[a0 + x]
+            sum_b += gray[b0 + x]
+    mean_a = sum_a / count
+    mean_b = sum_b / count
+    num = var_a = var_b = 0.0
+    for y in range(rows):
+        a0 = y * width
+        b0 = (y + shift) * width
+        for x in range(width):
+            da = gray[a0 + x] - mean_a
+            db = gray[b0 + x] - mean_b
+            num += da * db
+            var_a += da * da
+            var_b += db * db
+    denom = math.sqrt(var_a * var_b)
+    if denom < 1e-6:
+        return 0.0
+    return num / denom
+
+def vertical_tile_scores(image):
+    """Normalized vertical autocorrelation at H/2 and H/3 on a small luma probe."""
+    probe = image.convert('L')
+    probe.thumbnail((96, 96), _resample())
+    width, height = probe.size
+    gray = list(probe.getdata())
+    if height < 6 or width < 2:
+        return {'h2': 0.0, 'h3': 0.0}
+    return {
+        'h2': _corr_shift(gray, width, height, height // 2),
+        'h3': _corr_shift(gray, width, height, max(1, height // 3)),
+    }
+
+def tile_corr_max():
+    raw = os.environ.get('KEYFRAME_TILE_CORR', '').strip()
+    return float(raw) if raw else TILE_CORR_MAX
+
+def keyframe_is_tiled(image, threshold=None):
+    if threshold is None:
+        threshold = tile_corr_max()
+    scores = vertical_tile_scores(image)
+    return max(scores.values()) > threshold, scores
+
+def single_scene_image(width=96, height=96):
+    """A non-repeating still, for tests and the Comfy HTTP mock."""
+    Image = _Image()
+    rng = random.Random(1)
+    image = Image.frombytes(
+        'RGB', (width, height),
+        bytes(rng.randrange(256) for _ in range(width * height * 3)),
+    )
+    pixels = image.load()
+    for y in range(height // 3, height // 3 + max(1, height // 5)):
+        for x in range(width // 4, width // 4 + max(1, width // 3)):
+            pixels[x, y] = (240, 180, 40)
+    return image
+
+def stacked_strip_image(width=96, height=96, bands=3):
+    """The dog-cat failure: the same strip repeated down the frame."""
+    Image = _Image()
+    band_h = max(1, height // bands)
+    band = single_scene_image(width, band_h)
+    canvas = Image.new('RGB', (width, band_h * bands))
+    for index in range(bands):
+        canvas.paste(band, (0, index * band_h))
+    return canvas
+
+def png_bytes(image):
+    buffer = io.BytesIO()
+    image.save(buffer, format='PNG')
+    return buffer.getvalue()
+
 def job_identity(job):
     jid = job.get('job_id') or job.get('id')
     if not jid:
@@ -137,8 +258,8 @@ def seed_for(job_id):
 
 def keyframe_prompt(prompt):
     return (
-        'Single cinematic still frame of one moment. Same characters and setting '
-        'as the scene, no text, no captions, no collage, no split screen. '
+        SINGLE_FRAME_RULE
+        + ' One moment, one camera. No text, no captions. '
         + prompt.strip()
     )
 
@@ -148,6 +269,8 @@ def motion_prompt(prompt, seconds=DEFAULT_SCENE_SECONDS):
         'The clip opens exactly on the keyframe and keeps the same characters, '
         'wardrobe, and setting. '
         f'This is one continuous shot of about {shown} seconds. '
+        + SINGLE_FRAME_RULE
+        + ' '
         + prompt.strip()
         + ' Gentle camera move that follows the action. No on-screen text, no '
         'subtitles, no scene cuts. Audio: natural sound and light ambience that '
@@ -198,6 +321,7 @@ def h3_workflow(prompt, width, height, length, seed, image_name, prefix):
             'clip': ['13', 0],
             'vae': ['11', 0],
             'first_frame': ['114', 0],
+            'last_frame': ['114', 0],
             'prompt': prompt,
             'width': int(width),
             'height': int(height),
@@ -232,8 +356,10 @@ def assert_i2v(workflow):
     if 'LoraLoaderModelOnly' in types:
         raise RuntimeError('H3 turbo LoRA stays off for this path')
     node = next(n for n in workflow.values() if n['class_type'] == 'MiniMaxH3ImageToVideo')
-    if not node['inputs'].get('first_frame'):
+    if not node['inputs'].get('first_frame') or not node['inputs'].get('last_frame'):
         raise RuntimeError('Refusing H3 text-to-video. A Z-Image keyframe is required.')
+    if node['inputs']['first_frame'] != node['inputs']['last_frame']:
+        raise RuntimeError('H3 first_frame and last_frame must be the same keyframe.')
     length = int(node['inputs']['length'])
     if length % 17 != 5 or length < 5 or length > H3_FRAMES_8S:
         raise RuntimeError(
@@ -373,8 +499,19 @@ class ComfyClient:
             print('comfy free skipped', exc)
 
 
+def _fitted_keyframe(image, width, height):
+    """Gate the SaveImage still, then scale/center-crop onto the H3 canvas.
+
+    The check runs on the generated pixels. Scoring the upscaled canvas instead
+    would flag smooth interpolation as a repeated band.
+    """
+    tiled, scores = keyframe_is_tiled(image)
+    if tiled:
+        return None, scores
+    return fit_cover_image(image, width, height), scores
+
 def render_comfy(job, out_path, client, workdir):
-    """Keyframe (Z-Image) then H3 I2V. KEYFRAME_IMAGE skips only the still call."""
+    """1024 Z-Image still, tile gate, then H3 I2V. KEYFRAME_IMAGE skips only the still call."""
     prompt = scene_prompt(job)
     width, height = frame_size(job.get('aspect_ratio'))
     seconds = scene_seconds(job)
@@ -385,25 +522,50 @@ def render_comfy(job, out_path, client, workdir):
     workdir.mkdir(parents=True, exist_ok=True)
     external = os.environ.get('KEYFRAME_IMAGE', '').strip()
     if external:
-        key_path = Path(external)
-        if not key_path.is_file():
+        source = Path(external)
+        if not source.is_file():
             raise FileNotFoundError(f'KEYFRAME_IMAGE not found: {external}')
-        print('keyframe hook', key_path)
+        print('keyframe hook', source)
+        fitted, scores = _fitted_keyframe(_Image().open(source), width, height)
+        if fitted is None:
+            raise RuntimeError(f'KEYFRAME_IMAGE looks tiled and will not be sent to H3: {scores}')
     else:
-        still = zimage_workflow(
-            keyframe_prompt(prompt), width, height, seed, f'uncle_zimage/{jid}',
-        )
-        prompt_id = client.submit(still)
-        item = client.wait(prompt_id)
-        key_path = client.download(pick_image(output_files(item)), workdir / f'{jid}_key.png')
+        zw, zh = zimage_latent_size()
+        fitted = None
+        scores = None
+        for attempt in range(KEYFRAME_ATTEMPTS):
+            attempt_seed = seed + attempt
+            still = zimage_workflow(
+                keyframe_prompt(prompt), zw, zh, attempt_seed, f'uncle_zimage/{jid}_{attempt}',
+            )
+            prompt_id = client.submit(still)
+            item = client.wait(prompt_id)
+            raw_path = client.download(
+                pick_image(output_files(item)), workdir / f'{jid}_zimage_{attempt}.png',
+            )
+            fitted, scores = _fitted_keyframe(_Image().open(raw_path), width, height)
+            if fitted is None:
+                print('keyframe tiled', scores, 'seed', attempt_seed)
+                continue
+            seed = attempt_seed
+            print('keyframe ok', scores, 'seed', seed)
+            break
         client.free()
+        if fitted is None:
+            raise RuntimeError(
+                f'Keyframe still looks tiled after {KEYFRAME_ATTEMPTS} seeds: {scores}'
+            )
+    key_path = workdir / f'{jid}_key.png'
+    fitted.save(key_path, format='PNG')
+    if fitted.size != (width, height):
+        raise RuntimeError(f'Keyframe fit produced {fitted.size}, expected {(width, height)}')
     image_name = client.upload_image(key_path)
     video = h3_workflow(
         motion_prompt(prompt, seconds), width, height, length, seed, image_name,
         f'video/uncle_h3_{jid}',
     )
     assert_i2v(video)
-    print(f'render {width}x{height} frames={length} fps=24 seed={seed}')
+    print(f'render {width}x{height} frames={length} fps=24 seed={seed} zimage={ZIMAGE_SIDE}')
     prompt_id = client.submit(video)
     item = client.wait(prompt_id)
     return client.download(pick_video(output_files(item)), out_path)
@@ -433,6 +595,13 @@ class _MockState:
         self.jobs = list(jobs or [])
         self.results = []
         self.claims = []
+        self.key_pngs = []
+        self._clean_png = None
+
+    def clean_png(self):
+        if self._clean_png is None:
+            self._clean_png = png_bytes(single_scene_image(64, 64))
+        return self._clean_png
 
 
 def _json_response(handler, code, payload):
@@ -474,7 +643,12 @@ class _ComfyHandler(BaseHTTPRequestHandler):
         if parsed.path == '/view':
             name = (parse_qs(parsed.query).get('filename') or [''])[0]
             state.views.append(name)
-            blob = b'FAKEMP4' + b'0' * 128 if name.lower().endswith('.mp4') else b'\x89PNG' + b'0' * 128
+            if name.lower().endswith('.mp4'):
+                blob = b'FAKEMP4' + b'0' * 128
+            elif state.key_pngs:
+                blob = state.key_pngs.pop(0)
+            else:
+                blob = state.clean_png()
             _raw_response(self, 200, blob, 'application/octet-stream')
             return
         if parsed.path == '/object_info/MiniMaxH3ImageToVideo':

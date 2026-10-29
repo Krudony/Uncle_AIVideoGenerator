@@ -6,15 +6,18 @@ Drain the Colab relay into watchable scene clips for Uncle Generate.
 
 Each claimed job:
 
-1. Builds a keyframe with Z-Image Turbo from the scene prompt.
-2. Runs MiniMax H3 image-to-video (`fl2va`) with that image as `first_frame` and a motion prompt derived from the same scene.
-3. Uploads the mp4 to the relay.
+1. Builds a keyframe with Z-Image Turbo at **1024×1024**.
+2. Rejects a stacked comic/storyboard still (vertical autocorrelation at H/2 or H/3 above 0.85) and rerolls the seed, up to 3 times.
+3. Scales and center-crops the clean still onto the H3 canvas. Runs MiniMax H3 image-to-video (`fl2va`) with that image as both `first_frame` and `last_frame`.
+4. Uploads the mp4 to the relay.
 
-Per scene on an A100:
+Per scene on an A100 the **video** canvas is:
 
-- **9:16** (dog-cat and the studio default): **768×1344**. The Z-Image latent uses the same size. This is the H3 short edge of 768 and the 768×1344 pixel cap, not a square and not a crop of 768².
+- **9:16** (dog-cat and the studio default): **768×1344**.
 - **16:9**: **1344×768**.
 - **1:1** or anything else: **768×768**.
+
+Do not point EmptySD3 at those sizes. 768 and 768×1344 are what produced the three stacked dog-cat bands. The fix is a clean 1024 keyframe, not cropping the finished mp4.
 
 Length follows `job['duration']`. Episodes are 8 seconds, so the worker submits **192 frames** at 24 fps (`h3_length(8)`). 5 seconds is 124 frames (120 is not on the `17k+5` grid). Anything above 8 seconds, including 15, is capped at 192 frames. Do not render the native 15 second / 362-frame length. Concatenate the scene files afterward.
 
@@ -83,6 +86,10 @@ Optional: `KEYFRAME_IMAGE` is a still you already made with Z-Image. The worker 
 ## Bridge smoke only
 
 `BACKEND=ffmpeg` uploads a 2 second blue mp4 and does not touch ComfyUI. Use it to test claim/upload. It is not a real clip.
+
+## Check the next clips for stacked panels
+
+After this branch is on the Colab runtime, generate one **1:1** scene and one **9:16** scene. Grab a frame around 2 seconds. It should be one full-bleed picture. It should not be three stacked copies of the same dog and cat. `ffprobe` should report 768×768 or 768×1344, about 8 seconds.
 
 ## Local dry run (no GPU)
 

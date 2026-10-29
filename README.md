@@ -202,10 +202,11 @@ Video Generate queues a Colab job. `POST /api/generate` does not call OpenRouter
 
 Real clips use one path:
 
-1. Z-Image Turbo still from the scene prompt, same frame size as the video.
-2. MiniMax H3 `fl2va` image-to-video with that still as `first_frame`.
+1. Z-Image Turbo still at **1024×1024** (the official template size, not the H3 canvas).
+2. A vertical-tile check. Correlation at half and one-third of the height above 0.85 is treated as stacked comic panels. The seed is rerolled up to 3 times, and a tiled still is never sent to H3.
+3. Scale and center-crop that still onto the H3 canvas, then MiniMax H3 `fl2va` image-to-video with it as both `first_frame` and `last_frame`.
 
-Each scene is **768×768**, **1344×768** when the job aspect is 16:9, or **768×1344** when it is 9:16. The Z-Image still uses that same size. Length follows the job duration. Episodes are 8 seconds, and `h3_length(8)` is **192 frames** (exactly 8.0s on the `17k+5` grid). A 5 second job is 124 frames, because 120 is not a legal H3 length. Durations above 8 seconds are capped at 192 frames, so a 15 second request does not become 362 frames.
+The H3 canvas is **768×768**, **1344×768** when the job aspect is 16:9, or **768×1344** when it is 9:16. Z-Image does not sample 768×1344 directly. Length follows the job duration. Episodes are 8 seconds, and `h3_length(8)` is **192 frames** (exactly 8.0s on the `17k+5` grid). A 5 second job is 124 frames, because 120 is not a legal H3 length. Durations above 8 seconds are capped at 192 frames, so a 15 second request does not become 362 frames.
 
 `damo-vilab` is not a backend. `INSTALL_MODEL` does not select a model. Wan Animate is not this queue. Smoke mp4s for bridge tests only: `BACKEND=ffmpeg`.
 

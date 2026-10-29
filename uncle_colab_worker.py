@@ -4,7 +4,8 @@
 Real clips (default, BACKEND=comfy) on a Colab Pro A100 that already has ComfyUI:
 
   1. Z-Image Turbo still from the scene prompt
-  2. MiniMax H3 fl2va image-to-video at the same frame size as the still:
+  2. MiniMax H3 fl2va image-to-video. The still is sampled at 1024x1024, rejected
+     if it is a stacked comic panel, then scale/center-cropped to the H3 canvas:
      768x768, 1344x768 for 16:9, or 768x1344 for 9:16.
      Length follows job duration, capped at 8 seconds (192 frames at 24 fps).
 
