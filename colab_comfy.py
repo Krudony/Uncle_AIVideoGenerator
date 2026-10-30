@@ -9,6 +9,7 @@ import math
 import os
 import random
 import re
+import subprocess
 import threading
 import time
 import uuid
@@ -423,7 +424,7 @@ def seed_for(job_id):
 
 def keyframe_prompt(prompt):
     return (
-        'Photoreal cinematic still photo, continuous single shot, one camera angle, '
+        'Cinematic still in the medium and style requested below, continuous single shot, one camera angle, '
         'full-bleed edge-to-edge scene. No text, no captions. '
         + prompt
         + ' STRICT: one unbroken frame only. Forbidden: comic, manga, panel, '
@@ -442,7 +443,10 @@ def motion_prompt(prompt, seconds=DEFAULT_SCENE_SECONDS):
         + prompt.strip()
         + ' Gentle camera move that follows the action. No on-screen text, no '
         'subtitles, no scene cuts. Audio: natural sound and light ambience that '
-        'matches the action, no voiceover.'
+        'matches the action, no voiceover. Preserve the approved keyframe rendering '
+        'medium, shading, texture and outlines throughout every frame. The keyframe '
+        'style takes priority over conflicting style words above. No change between '
+        'photorealistic, 3D, and flat 2D rendering, including dissolves or morphs.'
     )
 
 def zimage_workflow(prompt, width, height, seed, prefix):
@@ -678,6 +682,64 @@ def _fitted_keyframe(image, width, height):
         return None, scores
     return fit_cover_image(image, width, height), scores
 
+def style_signature(image):
+    """Local flat-fill and contour evidence, not a semantic medium classifier."""
+    from PIL import ImageOps
+    image = image.convert('RGB').resize((192, 192)).crop((24, 48, 168, 168))
+    image = ImageOps.autocontrast(image, cutoff=1, preserve_tone=True)
+    pixels = image.load()
+    flat = edges = dark = 0
+    for y in range(1, image.height):
+        for x in range(1, image.width):
+            pixel, left, above = pixels[x, y], pixels[x - 1, y], pixels[x, y - 1]
+            gradient = max(max(abs(a - b) for a, b in zip(pixel, left)),
+                           max(abs(a - b) for a, b in zip(pixel, above)))
+            flat += gradient < 6
+            edges += gradient > 25
+            dark += sum(pixel) < 45 * 3
+    count = (image.width - 1) * (image.height - 1)
+    return {'flat': flat / count, 'edges': edges / count, 'dark': dark / count}
+
+
+def assert_video_style(path, keyframe):
+    """Reject strong flat-fill/contour shifts against the keyframe or earlier frames.
+
+    This CPU heuristic catches outlined 2D switches. It cannot certify arbitrary
+    artistic media. Every frame is decoded so a cut or a dissolve uses the same
+    evidence, without treating subject changes as style changes on their own.
+    """
+    try:
+        decoded = subprocess.run([
+            'ffmpeg', '-v', 'error', '-xerror', '-i', str(path), '-map', '0:v:0',
+            '-an', '-vf', 'scale=192:192', '-vsync', '0',
+            '-frames:v', str(H3_FRAMES_8S + 1), '-pix_fmt', 'rgb24',
+            '-f', 'rawvideo', 'pipe:1',
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60, check=True)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError('Cannot decode I2V clip for style gate') from exc
+    frame_bytes = 192 * 192 * 3
+    count, partial = divmod(len(decoded.stdout), frame_bytes)
+    if partial or not 1 <= count <= H3_FRAMES_8S:
+        raise RuntimeError('Cannot decode complete I2V clip within H3 frame limit')
+    signatures = [style_signature(keyframe)]
+    for index in range(count):
+        image = _Image().frombytes(
+            'RGB', (192, 192), decoded.stdout[index * frame_bytes:(index + 1) * frame_bytes])
+        current = style_signature(image)
+        for earlier_index, earlier in enumerate(signatures):
+            low, high = sorted((earlier, current), key=lambda item: item['edges'])
+            if (high['flat'] >= 0.25 and high['edges'] >= 0.22
+                    and high['edges'] - low['edges'] >= 0.08
+                    and high['dark'] >= 0.06
+                    and high['dark'] - low['dark'] >= 0.015):
+                reference = 'keyframe' if earlier_index == 0 else f'frame {earlier_index - 1}'
+                raise RuntimeError(
+                    f'I2V style switch between {reference} and frame {index}: '
+                    f'{earlier} -> {current}')
+        signatures.append(current)
+    return {'frames': count, 'keyframe': signatures[0]}
+
+
 def render_comfy(job, out_path, client, workdir):
     """1024 Z-Image still, tile gate, then H3 I2V. KEYFRAME_IMAGE skips only the still call."""
     prompt = scene_prompt(job)
@@ -743,7 +805,10 @@ def render_comfy(job, out_path, client, workdir):
     print(f'render {width}x{height} frames={length} fps=24 seed={seed} zimage={ZIMAGE_SIDE}')
     prompt_id = client.submit(video)
     item = client.wait(prompt_id)
-    return client.download(pick_video(output_files(item)), out_path)
+    result = client.download(pick_video(output_files(item)), out_path)
+    evidence = assert_video_style(result, fitted)
+    print('video style gate', evidence)
+    return result
 
 
 def check_comfy(base):
@@ -777,6 +842,17 @@ class _MockState:
         if self._clean_png is None:
             self._clean_png = png_bytes(single_scene_image(64, 64))
         return self._clean_png
+
+    def video_bytes(self):
+        upload = self.uploads[-1]
+        image = _Image().open(io.BytesIO(upload[upload.index(b'\x89PNG\r\n\x1a\n'):]))
+        encoded = subprocess.run([
+            'ffmpeg', '-v', 'error', '-f', 'image2pipe', '-i', 'pipe:0',
+            '-frames:v', '1', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+            '-movflags', 'frag_keyframe+empty_moov', '-f', 'mp4', 'pipe:1',
+        ], input=png_bytes(image), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            timeout=30, check=True)
+        return encoded.stdout
 
 
 def _json_response(handler, code, payload):
@@ -819,7 +895,7 @@ class _ComfyHandler(BaseHTTPRequestHandler):
             name = (parse_qs(parsed.query).get('filename') or [''])[0]
             state.views.append(name)
             if name.lower().endswith('.mp4'):
-                blob = b'FAKEMP4' + b'0' * 128
+                blob = state.video_bytes()
             elif state.key_pngs:
                 blob = state.key_pngs.pop(0)
             else:

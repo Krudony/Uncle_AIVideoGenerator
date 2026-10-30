@@ -280,7 +280,7 @@ class RelayGlueTests(EnvGuard):
         self.assertEqual(result['token'], 'secret-token')
         self.assertIn(b'name="status"', result['body'])
         self.assertIn(b'done', result['body'])
-        self.assertIn(b'FAKEMP4', result['body'])
+        self.assertIn(b'ftyp', result['body'])
         self.assertIn(b'out.mp4', result['body'])
 
     def test_tiled_keyframes_reroll_then_salvage_before_h3(self):
@@ -366,7 +366,7 @@ class RelayGlueTests(EnvGuard):
         body = relay.results[0]['body']
         self.assertIn(b'failed', body)
         self.assertIn(b'boom', body)
-        self.assertNotIn(b'FAKEMP4', body)
+        self.assertNotIn(b'ftyp', body)
 
     def test_external_keyframe_skips_zimage_and_still_runs_i2v(self):
         fd, name = tempfile.mkstemp(suffix='.png')
@@ -427,7 +427,7 @@ class ProcessTests(EnvGuard):
         os.environ['DRY_RUN_OUT'] = str(out)
         path = colab_comfy.dry_run('a dog and a cat talking')
         self.assertTrue(Path(path).is_file())
-        self.assertIn(b'FAKEMP4', Path(path).read_bytes())
+        self.assertIn(b'ftyp', Path(path).read_bytes())
 
     def test_check_talks_to_comfy_http(self):
         with colab_comfy.serve_mock_comfy() as comfy:
