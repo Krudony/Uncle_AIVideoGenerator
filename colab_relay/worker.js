@@ -85,33 +85,48 @@ export default {
       const jobs = await listJobs(env);
       const job = jobs.find((j) => j.job_id === job_id);
       if (!job) return json({ error: 'not found' }, 404);
-      const ct = request.headers.get('content-type') || '';
-      if (ct.includes('multipart/form-data')) {
+      const ct = (request.headers.get('content-type') || '').toLowerCase();
+      const formBody = ct.includes('multipart/form-data') || ct.includes('application/x-www-form-urlencoded');
+      if (formBody) {
         const form = await request.formData();
-        const status = form.get('status') || 'done';
+        const status = String(form.get('status') || '');
         const err = form.get('error') || '';
         const video = form.get('video');
         if (status === 'failed') {
           job.status = 'failed';
-          job.error = String(err).slice(0, 500);
+          job.error = String(err || 'Colab worker failed').slice(0, 500);
+          job.file = '';
         } else if (video && typeof video.arrayBuffer === 'function') {
           const buf = await video.arrayBuffer();
-          const key = `videos/${job_id}.mp4`;
-          await env.CLIPS.put(key, buf, { httpMetadata: { contentType: 'video/mp4' } });
-          job.status = 'done';
-          job.file = key;
-          job.error = '';
-          job.completed_at = new Date().toISOString();
+          if (buf && buf.byteLength > 0) {
+            const key = `videos/${job_id}.mp4`;
+            await env.CLIPS.put(key, buf, { httpMetadata: { contentType: 'video/mp4' } });
+            job.status = 'done';
+            job.file = key;
+            job.error = '';
+            job.completed_at = new Date().toISOString();
+          } else {
+            job.status = 'failed';
+            job.error = 'missing video';
+            job.file = '';
+          }
+        } else {
+          job.status = 'failed';
+          job.error = 'missing video';
+          job.file = '';
+        }
+      } else {
+        // A JSON body cannot carry the mp4. Never treat a parse failure or a
+        // bare {status:done} as a finished clip — that was the empty-file done.
+        const body = await request.json().catch(() => ({}));
+        job.file = '';
+        if (body && body.status === 'failed') {
+          job.status = 'failed';
+          job.error = String(body.error || 'Colab worker failed').slice(0, 500);
         } else {
           job.status = 'failed';
           job.error = 'missing video';
         }
-      } else {
-        const body = await request.json().catch(() => ({}));
-        job.status = body.status === 'failed' ? 'failed' : 'done';
-        job.error = body.error || '';
-        if (body.file) job.file = body.file;
-        job.completed_at = new Date().toISOString();
       }
       await saveJobs(env, jobs);
       return json({ ok: true, status: job.status, file: job.file || '' });
